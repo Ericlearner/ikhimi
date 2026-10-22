@@ -8,36 +8,39 @@ import { maskForStaff } from './permissions'
 import { audit, can, isFresh, staffAccess } from './staff'
 import { auditLog, businessStats, healthStats, homeworkDetail, moneyStats, recentHomework, searchUsers, staffOverview, userDetail, RUN_TIMEOUT_MS } from './stats'
 
-const OWNER = '+998901110000'
+const OWNER = 'owner@gmail.com'
 afterEach(() => {
-  delete process.env.OWNER_PHONES
+  delete process.env.OWNER_EMAILS
   delete process.env.AI_PRICES
 })
 
 async function setup() {
   const db = await createTestDb()
-  const add = async (phone: string, fullName: string, role: 'teacher' | 'student' = 'teacher') =>
-    (await db.insert(users).values({ role, roles: [role], phone, fullName }).returning())[0]!
+  // Accounts as Google makes them: the sign-in key and the verified email
+  const add = async (email: string, fullName: string, role: 'teacher' | 'student' = 'teacher') =>
+    (await db.insert(users).values({ role, roles: [role], phone: `google:${email}`, email, fullName }).returning())[0]!
   return { db, add }
 }
 
 describe('staff access', () => {
-  it('owners come from OWNER_PHONES and can do everything, staff included', async () => {
+  it('owners come from OWNER_EMAILS and can do everything, staff included', async () => {
     const { db, add } = await setup()
-    process.env.OWNER_PHONES = `${OWNER}, +998 90 222 00 00`
+    process.env.OWNER_EMAILS = ` Owner@Gmail.com , other@example.com, not-an-email`
     const owner = await add(OWNER, 'Owner')
     const a = (await staffAccess(db, owner))!
     expect(a.owner).toBe(true)
     expect(can(a, 'staff')).toBe(true)
-    expect(can(a, 'users.phone')).toBe(true)
-    expect(await staffAccess(db, await add('+998903330000', 'Teacher'))).toBeNull()
+    expect(can(a, 'users.email')).toBe(true)
+    expect(await staffAccess(db, await add('teacher@gmail.com', 'Teacher'))).toBeNull()
+    // An account without an email (Apple, hidden) is never staff
+    expect(await staffAccess(db, { ...owner, email: null })).toBeNull()
   })
 
   it('an assistant gets exactly their role, loses it when removed or blocked, never manages staff', async () => {
     const { db, add } = await setup()
     const [role] = await db.insert(staffRoles).values({ name: 'Support', permissions: ['users.view', 'content', 'bogus'] }).returning()
-    const helper = await add('+998904440000', 'Helper')
-    await db.insert(staffMembers).values({ phone: helper.phone, roleId: role!.id })
+    const helper = await add('helper@gmail.com', 'Helper')
+    await db.insert(staffMembers).values({ email: 'helper@gmail.com', roleId: role!.id })
     const a = (await staffAccess(db, helper))!
     expect([...a.permissions].sort()).toEqual(['content', 'users.view'])
     expect(can(a, 'money')).toBe(false)
@@ -47,24 +50,24 @@ describe('staff access', () => {
     expect(await staffAccess(db, helper)).toBeNull()
   })
 
-  it('admin pages need a sign-in from the last 12 hours, not by the Telegram link', () => {
+  it('admin pages need a Google or Apple sign-in from the last 12 hours', () => {
     const now = Date.now()
-    expect(isFresh({ createdAt: new Date(now - 3600_000), method: 'password' }, now)).toBe(true)
-    expect(isFresh({ createdAt: new Date(now - 3600_000), method: 'otp' }, now)).toBe(true)
-    expect(isFresh({ createdAt: new Date(now - 13 * 3600_000), method: 'password' }, now)).toBe(false)
-    expect(isFresh({ createdAt: new Date(now - 3600_000), method: 'telegram' }, now)).toBe(false)
+    expect(isFresh({ createdAt: new Date(now - 3600_000), method: 'google' }, now)).toBe(true)
+    expect(isFresh({ createdAt: new Date(now - 3600_000), method: 'apple' }, now)).toBe(true)
+    expect(isFresh({ createdAt: new Date(now - 13 * 3600_000), method: 'google' }, now)).toBe(false)
     // Sessions from before the method was recorded
     expect(isFresh({ createdAt: new Date(now - 3600_000), method: null }, now)).toBe(false)
   })
 
-  it('masks phone numbers for lists', () => {
-    expect(maskForStaff('+821012345678')).toBe('010-••••-5678')
-    expect(maskForStaff('+14155552671')).toBe('+14 15 ••• 26 71')
+  it('masks emails for lists', () => {
+    expect(maskForStaff('jieun.kim@gmail.com', 'google:1')).toBe('j•••@gmail.com')
+    expect(maskForStaff(null, 'apple:1')).toBe('Apple ID')
+    expect(maskForStaff(null, 'google:1')).toBe('—')
   })
 
   it("a blocked user's session stops working", async () => {
     const { db, add } = await setup()
-    const u = await add('+998905550000', 'Blocked')
+    const u = await add('blocked@gmail.com', 'Blocked')
     const { token } = await createSession(db, u.id)
     expect(await validateSessionToken(db, token)).not.toBeNull()
     await db.update(users).set({ blockedAt: new Date() })
@@ -75,7 +78,7 @@ describe('staff access', () => {
 describe('AI usage and cost', () => {
   it('records every call, including failures, and prices thinking as output', async () => {
     const { db, add } = await setup()
-    const u = await add('+998906660000', 'T')
+    const u = await add('t@example.com', 'T')
     let fail = false
     const llm: LlmProvider = {
       name: 'gemini',
@@ -104,7 +107,7 @@ describe('AI usage and cost', () => {
 describe('admin numbers', () => {
   it('health: failures with their reason, a run left running counts as a timeout, AI cost per homework', async () => {
     const { db, add } = await setup()
-    const t = await add('+998907770000', 'Teacher A')
+    const t = await add('teacher.a@example.com', 'Teacher A')
     await db.insert(generationRuns).values([
       { teacherId: t.id, mode: 'create', kind: 'new', status: 'ok', durationMs: 60_000, picturesAttached: 2 },
       { teacherId: t.id, mode: 'create', kind: 'new', status: 'failed', errorCode: 'ai_busy', durationMs: 5_000 },
@@ -121,19 +124,19 @@ describe('admin numbers', () => {
     expect(h.ai.topUsers[0]).toMatchObject({ name: 'Teacher A' })
   })
 
-  it('finds people by name or part of the phone; the log names who did what to whom', async () => {
+  it('finds people by name or part of the email; the log names who did what to whom', async () => {
     const { db, add } = await setup()
-    const a = await add('+998901234567', 'Malika Karimova')
-    const b = await add('+998977654321', 'Aziz', 'student')
+    const a = await add('malika@gmail.com', 'Malika Karimova')
+    const b = await add('aziz.k@naver.com', 'Aziz', 'student')
     expect((await searchUsers(db, 'malika')).map((u) => u.id)).toEqual([a.id])
-    expect((await searchUsers(db, '7654')).map((u) => u.id)).toEqual([b.id])
+    expect((await searchUsers(db, 'NAVER')).map((u) => u.id)).toEqual([b.id])
     await audit(db, a.id, 'user.block', { type: 'user', id: b.id }, { reason: 'spam' })
     expect(await auditLog(db)).toMatchObject([{ action: 'user.block', actorName: 'Malika Karimova', targetName: 'Aziz', details: { reason: 'spam' } }])
   })
 
   it('growth, money, a user and a homework all load', async () => {
     const { db, add } = await setup()
-    const t = await add('+998908880000', 'Teacher B')
+    const t = await add('teacher.b@example.com', 'Teacher B')
     await db.insert(teacherProfiles).values({ userId: t.id, dailyCap: 40 })
     const [a] = await db.insert(assignments).values({ teacherId: t.id, title: 'Past Simple', instructionLocale: 'ko', contentLanguage: 'en', shareSlug: 'abc123' }).returning()
     await db.insert(generationRuns).values({ teacherId: t.id, assignmentId: a!.id, mode: 'create', kind: 'new', status: 'ok' })

@@ -51,7 +51,6 @@ const PAIRS: [string, string, string][] = [
   ['--error-600', '--paper-100', 'error text'],
   ['--success-600', '--paper-50', 'success text on card'],
   ['--warn-600', '--paper-50', 'warning text on card'],
-  ['--on-telegram', '--telegram', 'Telegram button'],
   ['--paper-50', '--ink-700', 'avatar initials (navy)'],
   ['--paper-50', '--orange-700', 'avatar initials (orange)'],
   ['--paper-50', '--gold-avatar', 'avatar initials (gold)'],

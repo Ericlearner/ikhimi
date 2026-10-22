@@ -86,7 +86,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           <StatTile value={report.medianMinutes ?? '—'} label={t('report.medianTime')} hint={t('report.vsEstimate', { n: report.expectedMinutes })} />
         </section>
 
-        {/* Students of the group who haven't handed it in can be reminded in Telegram */}
+        {/* Students of the group who haven't handed it in can be reminded in the iOS app */}
         {a.groupId && a.status === 'published' && report.counts.inProgress + report.counts.notStarted > 0 && (
           <RemindButton assignmentId={a.id} pending={report.counts.inProgress + report.counts.notStarted} />
         )}

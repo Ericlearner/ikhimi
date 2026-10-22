@@ -6,7 +6,7 @@ import { AppHeader } from '@/components/AppHeader'
 import { AutoRefresh } from '@/components/AutoRefresh'
 import { PlanCheckout } from '@/components/PlanCheckout'
 import { getT } from '@/i18n/server'
-import { enabledProviders, payInTelegram } from '@/server/payments/providers'
+import { enabledProviders } from '@/server/payments/providers'
 import { studentPlanInfo } from '@/server/plans'
 import { getPricing } from '@/server/pricing'
 import { getSession } from '@/server/request'
@@ -45,7 +45,6 @@ export default async function Plans({ searchParams }: { searchParams: Promise<{ 
           mode="student"
           pricing={pricing}
           providers={enabledProviders().map((p) => ({ id: p.id, label: p.label }))}
-          telegramBot={payInTelegram()}
           initialPlan={mine?.plan === 'pro' ? 'vip' : 'pro'}
           current={mine?.plan ?? null}
           signInHref={session ? undefined : '/signin?next=%2Ftariflar'}

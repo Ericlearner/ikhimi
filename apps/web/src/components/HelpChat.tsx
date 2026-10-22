@@ -1,5 +1,5 @@
 'use client'
-import { ArrowUp, Headset, MessageCircleQuestionMark, RotateCcw, Send, X } from 'lucide-react'
+import { ArrowUp, Headset, MessageCircleQuestionMark, RotateCcw, X } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -11,8 +11,8 @@ import type { HelpPlace } from '@/content/help-guide'
 type Msg =
   | { role: 'teacher'; text: string }
   | { role: 'assistant'; text: string; links?: { href: string; label: string }[]; unknown?: boolean }
-  /** What the chat itself says (sent to the team, a limit, an error): never sent to the AI */
-  | { role: 'note'; text: string; tone?: 'warn'; telegram?: boolean }
+  /** What the chat itself says (written to the team, a limit, an error): never sent to the AI */
+  | { role: 'note'; text: string; tone?: 'warn' }
 
 const SUGGEST: Record<HelpPlace, MessageKey[]> = {
   home: ['help.suggest.home.1', 'help.suggest.home.2', 'help.suggest.home.3'],
@@ -72,9 +72,10 @@ function useBottomClearance() {
 /**
  * The teachers' help chat (DECISIONS.md BN): a small button in the corner of every teacher page opens a chat that
  * answers how to use 익히미, from the guide. The conversation stays in this tab (sessionStorage); the server keeps
- * only each question's topic. "Jamoaga yozish" sends the conversation to the team in Telegram.
+ * only each question's topic. "Write to the team" opens an email to the team in the teacher's own mail app, with the
+ * last question and answer in it.
  */
-export function HelpChat({ userId, supportUrl }: { userId: string; supportUrl: string }) {
+export function HelpChat({ userId, supportEmail }: { userId: string; supportEmail: string }) {
   const { t } = useI18n()
   const path = usePathname()
   const clearance = useBottomClearance()
@@ -82,7 +83,7 @@ export function HelpChat({ userId, supportUrl }: { userId: string; supportUrl: s
   const [open, setOpen] = useState(false)
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [text, setText] = useState('')
-  const [busy, setBusy] = useState<'ask' | 'handoff' | null>(null)
+  const [busy, setBusy] = useState<'ask' | null>(null)
   const [confirming, setConfirming] = useState(false)
   const list = useRef<HTMLDivElement>(null)
   const input = useRef<HTMLTextAreaElement>(null)
@@ -152,8 +153,8 @@ export function HelpChat({ userId, supportUrl }: { userId: string; supportUrl: s
     }
   }
 
-  /** The last question and what came before it, to the team */
-  const handOff = async () => {
+  /** The last question and its answer, to the team: an email the teacher sends from their own mail app */
+  const handOff = () => {
     const all = text.trim() ? [...msgs, { role: 'teacher' as const, text: text.trim() }] : msgs
     const lastQ = all.findLastIndex((m) => m.role === 'teacher')
     if (lastQ < 0) {
@@ -162,27 +163,13 @@ export function HelpChat({ userId, supportUrl }: { userId: string; supportUrl: s
       input.current?.focus()
       return
     }
-    setBusy('handoff')
-    try {
-      const res = await fetch('/api/help/handoff', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ question: (all[lastQ] as { text: string }).text, history: history(all.slice(0, lastQ)), path }),
-      })
-      const body = (await res.json().catch(() => ({}))) as { reach?: 'telegram' | 'phone'; limit?: number }
-      const note: Msg = res.ok
-        ? { role: 'note', text: t(body.reach === 'telegram' ? 'help.handoff.sentTelegram' : 'help.handoff.sentPhone') }
-        : res.status === 429
-          ? { role: 'note', tone: 'warn', telegram: true, text: t('help.handoff.limit', { n: body.limit ?? '' }) }
-          : { role: 'note', tone: 'warn', telegram: true, text: t('help.handoff.unavailable') }
-      setMsgs([...all, note])
-      if (res.ok) setText('')
-    } catch {
-      setMsgs((m) => [...m, { role: 'note', tone: 'warn', telegram: true, text: t('help.handoff.unavailable') }])
-    } finally {
-      setBusy(null)
-      setConfirming(false)
-    }
+    // Short: a mail link longer than about 2,000 characters fails in some mail apps (Korean letters take 9 each)
+    const turns = history(all).slice(-2)
+    const body = [`${t('help.handoff.page')}: ${path}`, '', ...turns.map((m) => `${m.role === 'teacher' ? '👤' : '🤖'} ${m.text.slice(0, 160)}`), '', ''].join('\n')
+    window.location.href = `mailto:${supportEmail}?subject=${encodeURIComponent(t('help.handoff.subject'))}&body=${encodeURIComponent(body)}`
+    setMsgs([...all, { role: 'note', text: t('help.handoff.opened', { email: supportEmail }) }])
+    setText('')
+    setConfirming(false)
   }
 
   const lastIsUnknown = (() => {
@@ -266,13 +253,6 @@ export function HelpChat({ userId, supportUrl }: { userId: string; supportUrl: s
               ) : (
                 <div key={i} className={`t-small flex flex-col items-start gap-2 self-center rounded-md px-3 py-2 text-center ${m.tone === 'warn' ? 'bg-warn-100 text-warn-600' : 'text-ink-500'}`}>
                   <span>{m.text}</span>
-                  {m.telegram && (
-                    <a href={supportUrl} target="_blank" rel="noopener noreferrer" className="btn btn-telegram btn-sm self-center">
-                      <span className="btn-label">
-                        <Send size={16} strokeWidth={ICON.strokeWidth} aria-hidden /> {t('help.writeUs')}
-                      </span>
-                    </a>
-                  )}
                 </div>
               ),
             )}
@@ -295,10 +275,10 @@ export function HelpChat({ userId, supportUrl }: { userId: string; supportUrl: s
               <div className="flex flex-col gap-2 rounded-lg border border-paper-300 bg-paper-100 px-3 py-2">
                 <p className="t-small text-ink-700">{t('help.handoff.confirm')}</p>
                 <div className="flex gap-2">
-                  <Button size="sm" loading={busy === 'handoff'} onClick={handOff}>
+                  <Button size="sm" onClick={handOff}>
                     {t('help.handoff.send')}
                   </Button>
-                  <Button size="sm" variant="ghost" disabled={busy === 'handoff'} onClick={() => setConfirming(false)}>
+                  <Button size="sm" variant="ghost" onClick={() => setConfirming(false)}>
                     {t('common.cancel')}
                   </Button>
                 </div>

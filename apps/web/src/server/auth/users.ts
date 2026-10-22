@@ -1,15 +1,19 @@
-import { and, desc, eq, isNotNull, sessions, sql, teacherProfiles, users, type Db } from '@ikhimi/db'
+import { and, appleAccounts, desc, eq, googleAccounts, isNotNull, sessions, sql, teacherProfiles, users, type Db } from '@ikhimi/db'
 import type { Locale } from '@ikhimi/i18n'
+import { applePhone } from '../apple'
+import { googlePhone } from '../google'
 import { giveVipGift } from '../plans'
 
 type Role = 'teacher' | 'student'
+type User = typeof users.$inferSelect
 
 /**
- * Find or create the user for a just-verified phone. Signing in never adds a role: an existing account keeps the
- * roles it has. A new account gets `role` when the way in says it (a homework link: student); otherwise it has no
- * role yet (roles = []) and chooses one on the welcome screen (chooseFirstRole).
+ * Find or create the account with this sign-in key (the phone column: `google:<id>`, `apple:<id>`). Signing in never
+ * adds a role: an existing account keeps the roles it has. A new account gets `role` when the way in says it (a
+ * homework link: student); otherwise it has no role yet (roles = []) and chooses one on the welcome screen
+ * (chooseFirstRole).
  */
-export async function findOrCreateUserByPhone(db: Db, input: { phone: string; role?: Role | null; uiLocale: Locale }) {
+export async function findOrCreateUser(db: Db, input: { phone: string; email?: string | null; role?: Role | null; uiLocale: Locale }) {
   const now = new Date()
   const [existing] = await db.select().from(users).where(eq(users.phone, input.phone)).limit(1)
   if (existing) {
@@ -17,9 +21,6 @@ export async function findOrCreateUserByPhone(db: Db, input: { phone: string; ro
     if (existing.deletedAt) {
       await db.update(users).set({ deletedAt: null }).where(eq(users.id, existing.id))
       existing.deletedAt = null
-    }
-    if (!existing.phoneVerifiedAt) {
-      await db.update(users).set({ phoneVerifiedAt: now }).where(eq(users.id, existing.id))
     }
     return { user: existing, isNew: false }
   }
@@ -32,20 +33,63 @@ export async function findOrCreateUserByPhone(db: Db, input: { phone: string; ro
       roles: role ? [role] : [],
       prefs: { sound: role === 'teacher' ? 'off' : 'normal' },
       phone: input.phone,
-      phoneVerifiedAt: now,
+      email: input.email ?? null,
       uiLocale: input.uiLocale,
       lastActiveAt: now,
     })
-    .onConflictDoNothing({ target: users.phone })
+    .onConflictDoNothing()
     .returning()
-  // Lost a race with a concurrent verify for the same phone
+  // Lost a race with a concurrent sign-in for the same key (or, rarely, the email: then without it)
   if (!user) {
     const [raced] = await db.select().from(users).where(eq(users.phone, input.phone)).limit(1)
-    return { user: raced!, isNew: false }
+    if (raced) return { user: raced, isNew: false }
+    return findOrCreateUser(db, { ...input, email: null })
   }
   if (role === 'teacher') await db.insert(teacherProfiles).values({ userId: user.id })
   else if (role === 'student') await giveVipGift(db, user.id, now)
   return { user, isNew: true }
+}
+
+/**
+ * The account a Google account or an Apple ID opens: the one it is linked to; else the account with the same verified
+ * email (the same person signed in the other way before: Google on the website, Apple in the iOS app); else a new one
+ * whose phone column is `google:<id>` / `apple:<id>`. The email is kept on the account, for owners and staff.
+ */
+export async function accountForSignIn(
+  db: Db,
+  input: { provider: 'google' | 'apple'; sub: string; email: string | null; role?: Role | null; uiLocale: Locale },
+): Promise<{ user: User; isNew: boolean }> {
+  const links = input.provider === 'google' ? googleAccounts : appleAccounts
+  const email = input.email?.trim().toLowerCase() || null
+  const [link] = await db.select({ userId: links.userId }).from(links).where(eq(links.sub, input.sub)).limit(1)
+  let [user] = link ? await db.select().from(users).where(eq(users.id, link.userId)).limit(1) : []
+  let isNew = false
+  if (!user && email) {
+    const [same] = await db.select().from(users).where(eq(users.email, email)).limit(1)
+    // One Google account and one Apple ID per account: a second one with the same email starts its own
+    const [taken] = same ? await db.select({ sub: links.sub }).from(links).where(eq(links.userId, same.id)).limit(1) : []
+    if (same && !taken && !same.phone.startsWith('deleted:')) {
+      await db.insert(links).values({ userId: same.id, sub: input.sub }).onConflictDoNothing()
+      user = same
+    }
+  }
+  if (user) {
+    // Signing in within 30 days of deleting the account restores it (spec §12)
+    if (user.deletedAt) await db.update(users).set({ deletedAt: null }).where(eq(users.id, user.id))
+    user = { ...user, deletedAt: null }
+    if (email && user.email !== email) {
+      const [free] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1)
+      if (!free) {
+        await db.update(users).set({ email }).where(eq(users.id, user.id))
+        user.email = email
+      }
+    }
+  } else {
+    const phone = input.provider === 'google' ? googlePhone(input.sub) : applePhone(input.sub)
+    ;({ user, isNew } = await findOrCreateUser(db, { phone, email, role: input.role, uiLocale: input.uiLocale }))
+    await db.insert(links).values({ userId: user.id, sub: input.sub }).onConflictDoNothing()
+  }
+  return { user, isNew }
 }
 
 /** A new account that hasn't said yet whether it teaches or learns */

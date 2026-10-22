@@ -5,7 +5,7 @@ import { pageStaff } from '@/server/admin/guard'
 import { maskForStaff, PERMISSIONS } from '@/server/admin/permissions'
 import { staffOverview } from '@/server/admin/stats'
 
-/** Owner only: roles (sets of permissions) and the assistants who hold them, added by phone number */
+/** Owner only: roles (sets of permissions) and the assistants who hold them, added by the email they sign in with */
 export default async function AdminStaff() {
   const db = getDb()
   await pageStaff(db, 'staff')
@@ -19,8 +19,8 @@ export default async function AdminStaff() {
         roles={roles.map((r) => ({ id: r.id, name: r.name, permissions: r.permissions }))}
         members={members.map((m) => ({
           id: m.m.id,
-          phone: m.m.phone,
-          masked: maskForStaff(m.m.phone),
+          email: m.m.email,
+          masked: maskForStaff(m.m.email, ''),
           name: m.m.name ?? m.user?.fullName ?? null,
           roleId: m.m.roleId,
           signedUp: !!m.user?.id,

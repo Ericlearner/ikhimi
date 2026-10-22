@@ -1,10 +1,10 @@
-import { cardPayment } from './card'
 import type { PaymentProvider, ProviderId } from './core'
 
 /**
  * A real payment gateway (e.g. Toss Payments) goes here once its merchant account exists: an adapter with `enabled()`
  * reading its keys and `checkoutUrl()`, a callback route under /api/payments/<id> that calls markPaid / markCancelled,
- * and its id added to the payment_provider enum. Until then: bank transfers in the bot, and the test provider.
+ * and its id added to the payment_provider enum. Until then nothing is sold (the plans pages say so), except with the
+ * test provider.
  */
 
 /**
@@ -19,30 +19,7 @@ export const testProvider: PaymentProvider = {
   checkoutUrl: ({ paymentId }) => `/pay/test/${paymentId}`,
 }
 
-/**
- * A bank transfer to the owner's account, paid and approved in the Telegram bot (card.ts, telegram/shop.ts): the way to
- * sell before a gateway is connected. Not a website checkout: the website sends buyers to the bot.
- */
-export const cardProvider: PaymentProvider = {
-  id: 'card',
-  label: '계좌이체',
-  enabled: () => !!cardPayment(),
-  checkoutUrl: () => {
-    const bot = process.env.TELEGRAM_BOT_USERNAME
-    return bot ? `https://t.me/${bot}?start=plan` : 'https://t.me'
-  },
-}
-
-/**
- * The website's way to pay while no gateway is connected but bank transfers are on: the bot's username (the plans page
- * links to its shop). Null once a gateway is connected: the normal checkout is back by itself.
- */
-export function payInTelegram(): string | null {
-  const bot = process.env.TELEGRAM_BOT_USERNAME
-  return bot && cardProvider.enabled() && !enabledProviders().length ? bot : null
-}
-
-export const PROVIDERS: Record<ProviderId, PaymentProvider> = { test: testProvider, card: cardProvider }
+export const PROVIDERS: Record<ProviderId, PaymentProvider> = { test: testProvider }
 
 /** Real gateways first; the test one only when nothing real is connected (no gateway yet) */
 export function enabledProviders(): PaymentProvider[] {

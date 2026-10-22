@@ -59,10 +59,11 @@ export const assignmentStatus = pgEnum('assignment_status', ['draft', 'published
 export const gradingMode = pgEnum('grading_mode', ['auto', 'ai', 'manual'])
 export const attemptStatus = pgEnum('attempt_status', ['in_progress', 'submitted', 'graded'])
 export const courseVisibility = pgEnum('course_visibility', ['private', 'unlisted', 'marketplace'])
-/** 'test' simulates a provider end to end; never enabled in production unless PAYMENT_TEST_ENABLED=1 */
-/** 'card': a bank transfer (계좌이체) to the owner's account, approved by hand in Telegram (server/payments/card.ts). Add a real
- * payment gateway (e.g. Toss Payments) here when one is connected. */
-export const paymentProvider = pgEnum('payment_provider', ['test', 'card'])
+/**
+ * 'test' simulates a provider end to end; never enabled in production unless PAYMENT_TEST_ENABLED=1. Add a real
+ * payment gateway (e.g. Toss Payments) here when one is connected.
+ */
+export const paymentProvider = pgEnum('payment_provider', ['test'])
 export const subscriptionStatus = pgEnum('subscription_status', [
   'trial',
   'pending',
@@ -94,19 +95,19 @@ export const users = pgTable(
     id: id(),
     /** Primary role (first one the account had). Authorization uses the session's active role. */
     role: userRole().notNull(),
-    /** All roles this phone holds — a teacher can also be a learner (§12 dual role) */
+    /** All roles this account holds — a teacher can also be a learner (§12 dual role) */
     roles: text().array().$type<('teacher' | 'student' | 'admin')[]>().notNull().default(sql`'{}'::text[]`),
     prefs: jsonb().$type<UserPrefs>().notNull().default({}),
-    /** E.164, e.g. +821012345678 */
+    /**
+     * Which sign-in opens this account: `google:<Google user id>` or `apple:<Apple user id>` (`deleted:<id>` once
+     * erased). Named phone from when accounts were phone numbers; never shown to anyone.
+     */
     phone: text().notNull(),
-    phoneVerifiedAt: ts(),
+    /** The verified email Google (or Apple, when the person shares it) gave at sign-in; lower case. Owners and staff are matched by it. */
+    email: text(),
     fullName: text(),
     uiLocale: uiLocale().notNull().default('ko'),
     avatarUrl: text(),
-    telegramChatId: text(),
-    /** scrypt hash (server/auth/password.ts); null = no password, sign in with Telegram, a code, Apple or Google */
-    passwordHash: text(),
-    passwordSetAt: ts(),
     lastActiveAt: ts(),
     /** Blocked by staff (admin panel): no sign-in, existing sessions end */
     blockedAt: ts(),
@@ -114,10 +115,10 @@ export const users = pgTable(
     ...timestamps,
     ...softDelete,
   },
-  (t) => [uniqueIndex('users_phone_uq').on(t.phone)],
+  (t) => [uniqueIndex('users_phone_uq').on(t.phone), uniqueIndex('users_email_uq').on(t.email)],
 )
 
-export type SignInMethod = 'otp' | 'telegram' | 'password' | 'apple' | 'google'
+export type SignInMethod = 'apple' | 'google'
 
 export const sessions = pgTable(
   'sessions',
@@ -130,7 +131,7 @@ export const sessions = pgTable(
     expiresAt: ts().notNull(),
     /** Active role for this session (dual-role accounts switch in the avatar menu) */
     activeRole: userRole(),
-    /** How this session signed in; the admin panel refuses a Telegram-link one (phishable). Null: before 0019 */
+    /** How this session signed in. Null: before 0019 */
     method: text().$type<SignInMethod>(),
     userAgent: text(),
     createdAt: ts().notNull().defaultNow(),
@@ -138,76 +139,10 @@ export const sessions = pgTable(
   (t) => [index('sessions_user_idx').on(t.userId)],
 )
 
-/** Wrong passwords, the rate-limit ledger for password sign-in (server/auth/password.ts). Pruned by the daily job. */
-export const passwordFailures = pgTable(
-  'password_failures',
-  {
-    id: id(),
-    phone: text().notNull(),
-    /** sha256(ip + pepper) */
-    ipHash: text(),
-    createdAt: ts().notNull().defaultNow(),
-  },
-  (t) => [index('password_failures_phone_idx').on(t.phone, t.createdAt), index('password_failures_ip_idx').on(t.ipHash, t.createdAt)],
-)
-
-/** One row per SMS sent. Doubles as the rate-limit ledger (§16). */
-export const otpCodes = pgTable(
-  'otp_codes',
-  {
-    id: id(),
-    phone: text().notNull(),
-    /** sha256(code + pepper) — never store the code itself */
-    codeHash: text().notNull(),
-    /** sha256(ip + pepper), for enumeration detection */
-    ipHash: text(),
-    expiresAt: ts().notNull(),
-    attempts: smallint().notNull().default(0),
-    consumedAt: ts(),
-    createdAt: ts().notNull().defaultNow(),
-  },
-  (t) => [index('otp_phone_created_idx').on(t.phone, t.createdAt), index('otp_ip_created_idx').on(t.ipHash, t.createdAt)],
-)
-
-/**
- * "Log in with Telegram" (free bot flow). The browser holds a random token; the user opens
- * t.me/<bot>?start=<token>, shares their own contact, and the bot marks the row approved with the
- * Telegram-verified phone. The browser then exchanges the token for a session, exactly once.
- */
-export const telegramLoginStatus = pgEnum('telegram_login_status', ['pending', 'approved', 'consumed'])
-export const telegramLogins = pgTable(
-  'telegram_logins',
-  {
-    id: id(),
-    /** sha256(token) hex — the raw token lives only in the browser and the t.me link */
-    tokenHash: text().notNull(),
-    status: telegramLoginStatus().notNull().default('pending'),
-    uiLocale: uiLocale().notNull().default('ko'),
-    telegramChatId: text(),
-    telegramUserId: text(),
-    phone: text(),
-    ipHash: text(),
-    /** sha256 of the one-time sign-in link the bot sends once the number is shared (for a browser that was lost) */
-    linkHash: text(),
-    /** What the browser asked for, so the bot's link continues the same way: the role (a homework link: student) */
-    asRole: text().$type<'teacher' | 'student'>(),
-    /** …and the page to go to after signing in */
-    next: text(),
-    expiresAt: ts().notNull(),
-    createdAt: ts().notNull().defaultNow(),
-  },
-  (t) => [
-    uniqueIndex('telegram_logins_token_uq').on(t.tokenHash),
-    uniqueIndex('telegram_logins_link_uq').on(t.linkHash),
-    index('telegram_logins_chat_idx').on(t.telegramChatId, t.createdAt),
-    index('telegram_logins_ip_idx').on(t.ipHash, t.createdAt),
-  ],
-)
-
 /**
  * Sign in with Apple (the iOS app): which account an Apple ID opens. A new account's phone column is `apple:<Apple user
- * id>` until the person links Telegram (then their real number). The refresh token lets deleting the account revoke
- * Apple's link (App Store rule 5.1.1).
+ * id>`; one whose shared email matches an account made with Google opens that account instead (server/auth/users.ts).
+ * The refresh token lets deleting the account revoke Apple's link (App Store rule 5.1.1).
  */
 export const appleAccounts = pgTable(
   'apple_accounts',
@@ -219,13 +154,13 @@ export const appleAccounts = pgTable(
     refreshToken: text(),
     updatedAt: ts().notNull().defaultNow(),
   },
-  // One Apple ID opens one account, also after it was linked to a Telegram number (server/auth/link.ts)
+  // One Apple ID opens one account
   (t) => [uniqueIndex('apple_accounts_sub_uq').on(t.sub)],
 )
 
 /**
- * Sign in with Google (the website): which account a Google account opens. A new account's phone column is
- * `google:<Google user id>` until the person links Telegram and the number joins it (server/auth/link.ts).
+ * Sign in with Google (the website and the Android apps): which account a Google account opens. A new account's phone
+ * column is `google:<Google user id>`; one whose email matches an account made with Apple opens that account instead.
  */
 export const googleAccounts = pgTable(
   'google_accounts',
@@ -794,15 +729,7 @@ export const payments = pgTable(
   (t) => [uniqueIndex('payments_provider_txn_uq').on(t.provider, t.providerTxnId), index('payments_commission_teacher_idx').on(t.commissionTeacherId)],
 )
 
-// ─── support ────────────────────────────────────────────────────────────────
-
-/** Support bot: which user a message in the admin chat belongs to, so a reply finds its way back */
-export const supportThreads = pgTable('support_threads', {
-  id: id(),
-  adminMessageId: integer().notNull(),
-  userChatId: text().notNull(),
-  ...timestamps,
-}, (t) => [uniqueIndex('support_threads_admin_msg_uq').on(t.adminMessageId)])
+// ─── help ───────────────────────────────────────────────────────────────────
 
 /**
  * The teachers' help chat (DECISIONS.md BN): one row per question, only what Admin's "most asked" list and the daily
@@ -819,8 +746,6 @@ export const helpQuestions = pgTable(
     topic: text().notNull(),
     /** An 'unknown' question in a few Korean words, so the same question asked differently counts once */
     gist: text(),
-    /** The teacher sent the conversation on to the team (Telegram support) */
-    handoff: boolean().notNull().default(false),
     createdAt: ts().notNull().defaultNow(),
   },
   (t) => [index('help_questions_user_idx').on(t.userId, t.createdAt), index('help_questions_created_idx').on(t.createdAt)],
@@ -844,7 +769,7 @@ export const methodologyDocs = pgTable('methodology_docs', {
 
 /**
  * Roles the owner defines for assistants, each a set of permissions (apps/web/src/server/admin/permissions.ts).
- * Owners themselves are named by the OWNER_PHONES setting, not stored here, so nobody can lock them out.
+ * Owners themselves are named by the OWNER_EMAILS setting, not stored here, so nobody can lock them out.
  */
 export const staffRoles = pgTable('staff_roles', {
   id: id(),
@@ -853,13 +778,13 @@ export const staffRoles = pgTable('staff_roles', {
   ...timestamps,
 })
 
-/** An assistant: added by phone number, before or after they first sign in */
+/** An assistant: added by the email they sign in with (Google), before or after they first sign in */
 export const staffMembers = pgTable(
   'staff_members',
   {
     id: id(),
-    /** E.164; matched against the signed-in user's phone */
-    phone: text().notNull(),
+    /** Lower case; matched against the signed-in user's email */
+    email: text().notNull(),
     name: text(),
     roleId: text()
       .notNull()
@@ -868,7 +793,7 @@ export const staffMembers = pgTable(
     revokedAt: ts(),
     ...timestamps,
   },
-  (t) => [uniqueIndex('staff_members_phone_uq').on(t.phone)],
+  (t) => [uniqueIndex('staff_members_email_uq').on(t.email)],
 )
 
 /** Settings the owner edits in the admin panel (the plan prices…): one JSON value per key, defaults in CONFIG */
@@ -1048,7 +973,7 @@ export const labMessages = pgTable(
 )
 
 /**
- * Telegram messages already sent, so each goes out once (new homework, due tomorrow, the teacher's reminder, alerts
+ * Notifications already sent, so each goes out once (new homework, due tomorrow, the teacher's reminder, alerts
  * to the owner). One row per key, e.g. "new:<assignment>:<student>"; rows older than 60 days are removed daily.
  */
 export const notificationLog = pgTable(

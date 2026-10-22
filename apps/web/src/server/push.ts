@@ -1,5 +1,5 @@
 /**
- * Push notifications to the iOS app (APNs), next to the Telegram messages in notify.ts: new homework, due soon, a
+ * Push notifications to the iOS app (APNs), the only notifications 익히미 sends (notify.ts): new homework, due soon, a
  * teacher's reminder, a graded essay. A device is registered by the app after sign-in (api/push) and forgotten on
  * sign-out, account deletion, or when Apple says the token is gone. Tapping a notification opens its page in the app.
  */

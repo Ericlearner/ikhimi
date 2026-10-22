@@ -1,7 +1,7 @@
 /**
  * How full the database is (on Vercel every file lives in it: material_blobs), what takes the space, and the
- * daily jobs that keep it in check: old WAV speech is turned into MP3 a batch at a time, and the owner hears in
- * Telegram when the database passes 80% of its plan (DB_STORAGE_LIMIT_MB, default 512: Neon's free plan).
+ * daily jobs that keep it in check: old WAV speech is turned into MP3 a batch at a time, and the owner hears
+ * (server/notify.ts alertOwner) when the database passes 80% of its plan (DB_STORAGE_LIMIT_MB, default 512: Neon's free plan).
  */
 import { and, eq, ilike, materialBlobs, materials, sql, type Db } from '@ikhimi/db'
 import { compressSpeech } from './audio'

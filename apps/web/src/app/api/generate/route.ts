@@ -308,7 +308,7 @@ export async function POST(req: Request) {
           // The answers are saved with the exercises; the answer pages aren't kept
           if (answerPages.length) await dropAnswerFiles(db, user.id, input.answerMaterialIds).catch((e) => console.warn('[generate] answer pages not removed', e))
           send({ type: 'done', assignmentId })
-          // Nobody was watching any more: tell the teacher it's ready (push, Telegram)
+          // Nobody was watching any more: tell the teacher it's ready (iOS app)
           if (!listening) await notifyDraftReady(db, { teacherId: user.id, runId: runId!, assignmentId, title: result.draft.title }).catch((e) => console.warn('[generate] ready message failed', e))
         } catch (err) {
           console.error('[generate]', err)

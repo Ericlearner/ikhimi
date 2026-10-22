@@ -2,16 +2,16 @@ import SafariServices
 import UIKit
 import WebKit
 
-/// The site, full screen. Our own pages stay in the app; Telegram opens the Telegram app; any other site opens in a
-/// Safari sheet. Pull down to refresh, swipe back, a native screen when there's no internet, and files the site
-/// hands out (an export) go to the share sheet.
+/// The site, full screen. Our own pages stay in the app; any other site opens in a Safari sheet. Pull down to
+/// refresh, swipe back, a native screen when there's no internet, and files the site hands out (an export) go to the
+/// share sheet.
 final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, WKDownloadDelegate {
     private var webView: WKWebView!
     private let progress = UIProgressView(progressViewStyle: .bar)
     private let offline = OfflineView()
     private var progressObservation: NSKeyValueObservation?
     private lazy var bridge = NativeBridge(host: self)
-    /// window.open('') first, the address later (the Telegram sign-in): kept until they say where they go
+    /// window.open('') first, the address later: kept until they say where they go
     private var popups: [WKWebView] = []
     private var downloads: [ObjectIdentifier: URL] = [:]
     private var failedURL: URL?
@@ -141,12 +141,11 @@ final class WebViewController: UIViewController, WKNavigationDelegate, WKUIDeleg
         decisionHandler(.cancel)
     }
 
-    /// Ours: in the app. Telegram: the Telegram app (or Safari). Other sites: a Safari sheet. tel:, mailto:: the system.
+    /// Ours: in the app. Other sites: a Safari sheet. tel:, mailto:, other apps' links: the system.
     private func route(_ url: URL) {
         if Config.isOurs(url) { return open(url) }
         let scheme = url.scheme?.lowercased() ?? ""
-        let host = url.host?.lowercased() ?? ""
-        if scheme == "https" || scheme == "http", !["t.me", "telegram.me", "telegram.dog"].contains(host) {
+        if scheme == "https" || scheme == "http" {
             let safari = SFSafariViewController(url: url)
             safari.preferredControlTintColor = UIColor(named: "AccentColor")
             return present(safari, animated: true)

@@ -40,7 +40,7 @@ export default async function AdminBusiness() {
         </div>
       </Section>
       <Section title={t('admin.help.title')} aside={<span className="t-small text-ink-500">{t('admin.help.lead')}</span>}>
-        <p className="t-body t-num text-ink-700">{t('admin.help.stats', { q: help.totals.questions, t: help.totals.teachers, h: help.totals.handoffs })}</p>
+        <p className="t-body t-num text-ink-700">{t('admin.help.stats', { q: help.totals.questions, t: help.totals.teachers })}</p>
         {help.totals.questions === 0 ? (
           <p className="t-body text-ink-500">{t('admin.help.empty')}</p>
         ) : (

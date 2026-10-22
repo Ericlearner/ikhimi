@@ -1,14 +1,13 @@
 'use client'
 import { Check, Download, LogOut, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import type { MessageKey } from '@ikhimi/i18n'
 import { Button, Chip, ICON, Input, SegmentedControl, Switch } from '@ikhimi/ui/components'
 import { configureSound, DEFAULT_LEARNER_PACK, LEARNER_PACKS, previewPack, type LearnerPack } from '@ikhimi/ui/sound'
 import { isLanguageSubject, SUBJECTS } from '@ikhimi/ai/exams'
 import { useI18n } from '@/i18n/client'
 import { postJson } from '@/lib/client'
-import { LinkTelegram } from './LinkTelegram'
 import { RoleSwitch } from './RoleSwitch'
 
 type Prefs = {
@@ -216,21 +215,14 @@ export function TeachingDefaultsForm({
 export function AccountSettings({
   prefs,
   isTeacher,
-  phoneMasked,
-  telegramLinked,
-  noNumber = false,
-  passwordSetAt = null,
+  signedInWith,
   role,
   roles = [],
 }: {
   prefs: Prefs
   isTeacher: boolean
-  phoneMasked: string
-  telegramLinked: boolean
-  /** Made with Apple or Google and no number yet: it can link Telegram (LinkTelegram), and has no password to set */
-  noNumber?: boolean
-  /** When the password was set; null = none (sign in with Telegram or a code) */
-  passwordSetAt?: Date | null
+  /** How this account signs in: "Google · name@gmail.com", or "Apple ID" */
+  signedInWith: string
   /** The side open now and the sides the account has: the student / teacher switch */
   role?: 'teacher' | 'student' | 'admin'
   roles?: string[]
@@ -247,7 +239,6 @@ export function AccountSettings({
     notifications: { newAssignment: true, dueSoon: true, graded: true, digest: true },
     ...prefs,
   })
-  const [tg, setTg] = useState(telegramLinked)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
@@ -285,8 +276,8 @@ export function AccountSettings({
   return (
     <div>
       {(role === 'student' || role === 'teacher') && <RoleSwitch role={role} roles={roles} />}
-      <Row label={t('auth.phone')} hint={t('settings.phoneHint')}>
-        <span className="t-body t-num font-medium">{phoneMasked}</span>
+      <Row label={t('settings.signedInWith')}>
+        <span className="t-body break-all font-medium">{signedInWith}</span>
       </Row>
       <Row label={t('settings.theme')}>
         <SegmentedControl
@@ -334,28 +325,6 @@ export function AccountSettings({
           onChange={(v) => setPref('textSize', v)}
           options={(['normal', 'large', 'larger'] as const).map((v) => ({ value: v, label: t(`textSize.${v}`) }))}
         />
-      </Row>
-      {!noNumber && <PasswordSetting setAt={passwordSetAt} />}
-      <Row label={t('settings.telegram')} hint={tg ? t('telegram.linked') : noNumber ? t('link.hint') : t('telegram.notLinked')}>
-        {!tg && noNumber && (
-          <LinkTelegram
-            onLinked={() => {
-              setTg(true)
-              router.refresh()
-            }}
-          />
-        )}
-        {tg && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={async () => {
-              if ((await fetch('/api/profile/telegram', { method: 'DELETE' })).ok) setTg(false)
-            }}
-          >
-            {t('telegram.unlink')}
-          </Button>
-        )}
       </Row>
       <div className="border-b border-paper-300 py-3">
         <span className="t-h3">{t('settings.notifications')}</span>
@@ -412,93 +381,6 @@ export function AccountSettings({
           </div>
         )}
       </div>
-    </div>
-  )
-}
-
-const PASSWORD_ERRORS: Record<string, MessageKey> = {
-  password_too_short: 'password.tooShort',
-  password_too_long: 'password.tooLong',
-  password_too_common: 'password.tooCommon',
-  password_is_phone: 'password.isPhone',
-  password_wrong_current: 'password.wrongCurrent',
-  password_current_required: 'password.currentRequired',
-}
-
-/** Profile: a password for signing in with the phone number (server/auth/password.ts) */
-function PasswordSetting({ setAt }: { setAt: Date | null }) {
-  const { t } = useI18n()
-  const [has, setHas] = useState(!!setAt)
-  const [open, setOpen] = useState(false)
-  const [current, setCurrent] = useState('')
-  const [next, setNext] = useState('')
-  const [again, setAgain] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [done, setDone] = useState(false)
-
-  const save = async (e: FormEvent) => {
-    e.preventDefault()
-    setError(null)
-    if (next.length < 8) return setError(t('password.tooShort'))
-    if (next !== again) return setError(t('password.mismatch'))
-    setBusy(true)
-    const { ok, json } = await postJson('/api/profile/password', { password: next, current: current || undefined }).finally(() => setBusy(false))
-    if (!ok) return setError(t(PASSWORD_ERRORS[String(json.error)] ?? 'error.generic'))
-    setHas(true)
-    setOpen(false)
-    setDone(true)
-    setCurrent('')
-    setNext('')
-    setAgain('')
-  }
-
-  return (
-    <div className="border-b border-paper-300 py-3">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col">
-          <span className="t-h3">{t('password.title')}</span>
-          <span className="t-small text-ink-400">{done ? t('password.saved') : t(has ? 'password.hintSet' : 'password.hintNone')}</span>
-        </div>
-        {!open && (
-          <Button variant="secondary" size="sm" onClick={() => (setDone(false), setOpen(true))}>
-            {t(has ? 'password.change' : 'password.set')}
-          </Button>
-        )}
-      </div>
-      {open && (
-        <form onSubmit={save} className="slide-down mt-3 flex max-w-sm flex-col gap-3" noValidate>
-          {has && (
-            <label className="flex flex-col gap-1">
-              <span className="t-small font-medium text-ink-500">{t('password.current')}</span>
-              <Input type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} maxLength={128} />
-              <span className="t-small text-ink-400">{t('password.currentHint')}</span>
-            </label>
-          )}
-          <label className="flex flex-col gap-1">
-            <span className="t-small font-medium text-ink-500">{t('password.new')}</span>
-            <Input type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} maxLength={128} />
-            <span className="t-small text-ink-400">{t('password.rules')}</span>
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="t-small font-medium text-ink-500">{t('password.again')}</span>
-            <Input type="password" autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} maxLength={128} />
-          </label>
-          {error && (
-            <p role="alert" className="t-body text-error-600">
-              {error}
-            </p>
-          )}
-          <div className="flex flex-wrap gap-2">
-            <Button type="submit" loading={busy}>
-              {t('action.save')}
-            </Button>
-            <Button variant="ghost" onClick={() => (setOpen(false), setError(null))}>
-              {t('common.cancel')}
-            </Button>
-          </div>
-        </form>
-      )}
     </div>
   )
 }

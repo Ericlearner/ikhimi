@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { and, eq, getDb, isNull, staffMembers, staffRoles } from '@ikhimi/db'
-import { normalizePhone } from '@ikhimi/i18n'
 import { apiStaff } from '@/server/admin/guard'
 import { PERMISSIONS } from '@/server/admin/permissions'
-import { audit, ownerPhones } from '@/server/admin/staff'
+import { audit, normalizeEmail, ownerEmails } from '@/server/admin/staff'
 import { HttpError, route } from '@/server/request'
 
 const perms = z.array(z.enum(PERMISSIONS)).max(PERMISSIONS.length)
@@ -12,12 +11,12 @@ const body = z.discriminatedUnion('action', [
   z.object({ action: z.literal('create_role'), name: z.string().trim().min(1).max(60), permissions: perms }),
   z.object({ action: z.literal('update_role'), id: z.string().max(40), name: z.string().trim().min(1).max(60), permissions: perms }),
   z.object({ action: z.literal('delete_role'), id: z.string().max(40) }),
-  z.object({ action: z.literal('add_member'), phone: z.string().max(40), name: z.string().trim().max(80).default(''), roleId: z.string().max(40) }),
+  z.object({ action: z.literal('add_member'), email: z.string().max(254), name: z.string().trim().max(80).default(''), roleId: z.string().max(40) }),
   z.object({ action: z.literal('update_member'), id: z.string().max(40), roleId: z.string().max(40) }),
   z.object({ action: z.literal('remove_member'), id: z.string().max(40) }),
 ])
 
-/** Roles and assistants. Only an owner (OWNER_PHONES) manages staff, so nobody can give themselves more. */
+/** Roles and assistants. Only an owner (OWNER_EMAILS) manages staff, so nobody can give themselves more. */
 export const POST = route(async (req) => {
   const db = getDb()
   const { session } = await apiStaff(db, 'staff')
@@ -51,16 +50,16 @@ export const POST = route(async (req) => {
       break
     }
     case 'add_member': {
-      const phone = normalizePhone(input.phone, 'UZ')
-      if (!phone) throw new HttpError(400, 'phone_invalid')
-      if (ownerPhones().includes(phone)) throw new HttpError(409, 'already_owner')
+      const email = normalizeEmail(input.email)
+      if (!email) throw new HttpError(400, 'email_invalid')
+      if (ownerEmails().includes(email)) throw new HttpError(409, 'already_owner')
       await role(input.roleId)
-      const [existing] = await db.select().from(staffMembers).where(eq(staffMembers.phone, phone)).limit(1)
+      const [existing] = await db.select().from(staffMembers).where(eq(staffMembers.email, email)).limit(1)
       // Re-adding someone who was removed brings the same row back with the new role
       const [m] = existing
         ? await db.update(staffMembers).set({ roleId: input.roleId, name: input.name || existing.name, revokedAt: null, addedBy: session.user.id }).where(eq(staffMembers.id, existing.id)).returning()
-        : await db.insert(staffMembers).values({ phone, name: input.name || null, roleId: input.roleId, addedBy: session.user.id }).returning()
-      await log({ type: 'staff', id: m!.id }, { phone, roleId: input.roleId })
+        : await db.insert(staffMembers).values({ email, name: input.name || null, roleId: input.roleId, addedBy: session.user.id }).returning()
+      await log({ type: 'staff', id: m!.id }, { email, roleId: input.roleId })
       return NextResponse.json({ ok: true, id: m!.id })
     }
     case 'update_member':

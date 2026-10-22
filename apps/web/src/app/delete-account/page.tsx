@@ -1,6 +1,6 @@
 import { AppHeader } from '@/components/AppHeader'
 import { SiteFooter } from '@/components/SiteFooter'
-import { supportBotUrl } from '@/content/site'
+import { supportMailto } from '@/content/site'
 import { getT } from '@/i18n/server'
 
 export const metadata = { title: '계정 삭제 — 익히미' }
@@ -24,7 +24,7 @@ export default async function DeleteAccount() {
           </ol>
           <p className="t-body text-ink-700">
             {t('deletion.noAccess')}{' '}
-            <a href={supportBotUrl()} target="_blank" rel="noopener noreferrer" className="font-semibold text-orange-700 underline">
+            <a href={supportMailto()} className="font-semibold text-orange-700 underline">
               {t('help.writeUs')}
             </a>
           </p>

@@ -1,8 +1,9 @@
 # 익히미 (Ikhimi)
 
 The Korean version of a homework app first built for Uzbekistan, copied into its own repository on 2026-10-22
-(DECISIONS.md, "Korean version"). It is a separate product: its own database, keys, Telegram bot, domain and app IDs.
-Never copy code, settings or data to or from the original app, and never point anything here at its services.
+(DECISIONS.md, "Korean version"). It is a separate product: its own database, keys, Google sign-in client, domain
+and app IDs. Never copy code, settings or data to or from the original app, and never point anything here at its
+services.
 
 - The interface is Korean only (`packages/i18n/messages/ko.json`, polite 해요체). Don't add other interface languages.
 - Learners are Korean speakers learning foreign languages; AI prompts stay in English and ask for Korean instructions.

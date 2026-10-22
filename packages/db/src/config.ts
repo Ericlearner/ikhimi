@@ -48,8 +48,8 @@ export const CONFIG = {
   },
   /** The AI tutor (VIP): replies per wrong answer, the first explanation and 4 button presses (simpler, example, practice) */
   tutorNotesPerAnswer: 5,
-  /** The teachers' help chat (DECISIONS.md BN): questions a day, conversations sent on to the team a day, rows kept */
-  help: { questionsPerDay: 40, handoffsPerDay: 3, keepDays: 90 },
+  /** The teachers' help chat (DECISIONS.md BN): questions a day, rows kept */
+  help: { questionsPerDay: 40, keepDays: 90 },
   /** [DECIDE #6] iOS: web-only subscriptions, Android first */
   iosInAppPurchase: false,
   /** [DECIDE #5] ASR for teacher lesson audio may use an external API; student speech never leaves */
@@ -60,13 +60,6 @@ export const CONFIG = {
 
 /** Auth limits (§16) — security requirements, not business decisions. */
 export const AUTH = {
-  otpLength: 6,
-  otpTtlSeconds: 5 * 60,
-  otpMaxSendsPerPhone: 3,
-  otpSendWindowSeconds: 15 * 60,
-  otpResendCooldownSeconds: 60,
-  otpMaxVerifyAttempts: 5,
-  otpMaxSendsPerIp: 10,
   /** A device stays signed in: a year from the last renewal, renewed about monthly while it's used */
   sessionTtlDays: 365,
   sessionRefreshWhenDaysLeft: 335,

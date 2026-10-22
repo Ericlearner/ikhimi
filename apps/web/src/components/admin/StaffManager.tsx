@@ -8,16 +8,16 @@ import { useI18n } from '@/i18n/client'
 import { postJson } from '@/lib/client'
 
 type Role = { id: string; name: string; permissions: string[] }
-type Member = { id: string; phone: string; masked: string; name: string | null; roleId: string; signedUp: boolean }
+type Member = { id: string; email: string; masked: string; name: string | null; roleId: string; signedUp: boolean }
 
-/** Create roles from permissions, and add, move or remove assistants by phone number (/api/admin/staff) */
+/** Create roles from permissions, and add, move or remove assistants by the email they sign in with (/api/admin/staff) */
 export function StaffManager({ permissions, roles, members }: { permissions: string[]; roles: Role[]; members: Member[] }) {
   const { t } = useI18n()
   const router = useRouter()
   const [editing, setEditing] = useState<Role | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [roleId, setRoleId] = useState(roles[0]?.id ?? '')
 
@@ -28,7 +28,7 @@ export function StaffManager({ permissions, roles, members }: { permissions: str
     setBusy(false)
     if (!ok) {
       const key: Record<string, MessageKey> = {
-        phone_invalid: 'error.phoneInvalid',
+        email_invalid: 'error.emailInvalid',
         role_in_use: 'admin.staff.roleInUse',
         already_owner: 'admin.staff.alreadyOwner',
         reauth: 'admin.verify.title',
@@ -126,8 +126,8 @@ export function StaffManager({ permissions, roles, members }: { permissions: str
         {roles.length > 0 && (
           <div className="flex flex-wrap items-end gap-2 rounded-lg border border-paper-300 bg-paper-50 p-4">
             <label className="flex flex-col gap-1">
-              <span className="t-small text-ink-500">{t('auth.phone')}</span>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="010-1234-5678" inputMode="tel" className="w-48" />
+              <span className="t-small text-ink-500">{t('admin.staff.email')}</span>
+              <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@gmail.com" type="email" inputMode="email" autoComplete="off" className="w-56" />
             </label>
             <label className="flex flex-col gap-1">
               <span className="t-small text-ink-500">{t('admin.staff.memberName')}</span>
@@ -146,11 +146,11 @@ export function StaffManager({ permissions, roles, members }: { permissions: str
             <Button
               size="sm"
               loading={busy}
-              disabled={!phone.trim() || !roleId}
+              disabled={!email.trim() || !roleId}
               icon={<UserPlus size={16} strokeWidth={ICON.strokeWidth} aria-hidden />}
               onClick={async () => {
-                if (await call({ action: 'add_member', phone, name, roleId })) {
-                  setPhone('')
+                if (await call({ action: 'add_member', email, name, roleId })) {
+                  setEmail('')
                   setName('')
                 }
               }}
@@ -168,7 +168,7 @@ export function StaffManager({ permissions, roles, members }: { permissions: str
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="t-body font-medium">{m.name ?? m.masked}</span>
                   <span className="t-small t-num text-ink-500">
-                    {m.phone} · {m.signedUp ? t('admin.staff.signedUp') : t('admin.staff.notSignedUp')}
+                    {m.email} · {m.signedUp ? t('admin.staff.signedUp') : t('admin.staff.notSignedUp')}
                   </span>
                 </span>
                 <select aria-label={t('admin.staff.role')} value={m.roleId} onChange={(e) => call({ action: 'update_member', id: m.id, roleId: e.target.value })} className={select}>

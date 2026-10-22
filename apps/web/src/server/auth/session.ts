@@ -12,7 +12,7 @@ type Role = 'teacher' | 'student' | 'admin'
  * `role` is the session's ACTIVE role; `roles` is everything the account holds. `roleChosen` false: a new account
  * that hasn't said yet whether it teaches or learns (the welcome screen asks).
  */
-export type SessionUser = Omit<typeof users.$inferSelect, 'passwordHash'> & { roleChosen?: boolean }
+export type SessionUser = typeof users.$inferSelect & { roleChosen?: boolean }
 export type ValidatedSession = { sessionId: string; user: SessionUser; expiresAt: Date; refreshed: boolean; createdAt: Date; method: SignInMethod | null }
 
 const DAY = 24 * 60 * 60 * 1000
@@ -61,8 +61,7 @@ export async function validateSessionToken(db: Db, token: string, now = new Date
     refreshed = true
   }
   // Authorization everywhere reads user.role — make it the active role, if the account still holds it
-  // The password hash never travels with the session
-  const { passwordHash: _hash, ...user } = row.user
+  const user = row.user
   const roles = user.roles.length ? user.roles : [user.role]
   const active = row.session.activeRole && roles.includes(row.session.activeRole) ? row.session.activeRole : user.role
   return {

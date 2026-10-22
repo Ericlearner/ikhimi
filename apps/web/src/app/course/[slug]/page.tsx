@@ -9,7 +9,7 @@ import { AutoRefresh } from '@/components/AutoRefresh'
 import { CourseCta } from '@/components/CourseCta'
 import { getT } from '@/i18n/server'
 import { canView, courseBySlug, coursePage, isPaid } from '@/server/courses'
-import { enabledProviders, payInTelegram } from '@/server/payments/providers'
+import { enabledProviders } from '@/server/payments/providers'
 import { getSession } from '@/server/request'
 import { isStoreApp } from '@/server/store-app'
 
@@ -51,7 +51,6 @@ export default async function CourseLanding({ params, searchParams }: { params: 
             buy={page.buy}
             priceKrw={c.priceKrw}
             providers={enabledProviders().map((p) => ({ id: p.id, label: p.label }))}
-            telegramBot={payInTelegram()}
             store={store}
             justPaid={justPaid}
           />

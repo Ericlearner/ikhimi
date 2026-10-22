@@ -3,26 +3,6 @@ import { z } from 'zod'
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   DATABASE_URL: z.string().url(),
-  /** Secret mixed into OTP and IP hashes. Rotate = all pending codes invalid. */
-  AUTH_PEPPER: z.string().min(16),
-  /**
-   * How login codes are delivered: `telegram` = Telegram Gateway for every number, `twilio` = SMS through Twilio
-   * (Korean numbers included). `console` prints them in the server log (development only).
-   */
-  SMS_PROVIDER: z.enum(['console', 'telegram', 'twilio']).default('console'),
-  TELEGRAM_GATEWAY_TOKEN: z.string().optional(),
-  TWILIO_ACCOUNT_SID: z.string().optional(),
-  TWILIO_AUTH_TOKEN: z.string().optional(),
-  TWILIO_FROM: z.string().optional(),
-  /** Free "Log in with Telegram" bot, from @BotFather */
-  TELEGRAM_BOT_TOKEN: z.string().optional(),
-  TELEGRAM_BOT_USERNAME: z.string().optional(),
-  /** Separate support bot (@BotFather): users write, messages land in SUPPORT_ADMIN_CHAT_ID, replies go back */
-  SUPPORT_BOT_TOKEN: z.string().optional(),
-  SUPPORT_BOT_USERNAME: z.string().optional(),
-  SUPPORT_ADMIN_CHAT_ID: z.string().optional(),
-  /** Random string; Telegram echoes it in X-Telegram-Bot-Api-Secret-Token so fake webhook calls are rejected */
-  TELEGRAM_WEBHOOK_SECRET: z.string().optional(),
   // Storage settings are read by @ikhimi/db/storage when an upload happens; optional here so a
   // deployment without storage (e.g. a Vercel preview) can still serve login.
   /** AI for homework generation and grading: https://aistudio.google.com/apikey */

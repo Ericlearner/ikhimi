@@ -1,7 +1,7 @@
 import type { Instrumentation } from 'next'
 
 /**
- * A page or route crashed on the server: tell the owner in Telegram (server/notify.ts alertOwner, at most once an hour
+ * A page or route crashed on the server: tell the owner (server/notify.ts alertOwner, at most once an hour
  * per route). API routes wrapped in `route()` report their own 500s; this catches the rest, pages included.
  */
 export const onRequestError: Instrumentation.onRequestError = async (err, request, context) => {

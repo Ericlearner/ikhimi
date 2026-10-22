@@ -231,14 +231,14 @@ describe('the Style a teacher picks', () => {
 
 describe('Lab resources', () => {
   it('the owner attaches them from either side of the account; a student still cannot upload', () => {
-    process.env.OWNER_PHONES = '+998900000001'
-    const ownerAsStudent = { id: 'o1', role: 'student' as const, phone: '+998900000001' }
+    process.env.OWNER_EMAILS = 'owner@gmail.com'
+    const ownerAsStudent = { id: 'o1', role: 'student' as const, email: 'owner@gmail.com' }
     expect(() => authorizeUpload(ownerAsStudent)).not.toThrow()
     expect(() => authorizeUpload(ownerAsStudent, 'o1')).not.toThrow()
     expect(() => authorizeUpload(ownerAsStudent, 'someone-else')).toThrow()
     expect(() => authorizeUpload({ ...ownerAsStudent, blockedAt: new Date() })).toThrow()
-    expect(() => authorizeUpload({ id: 's1', role: 'student', phone: '+998901112233' })).toThrow()
-    expect(() => authorizeUpload({ id: 't1', role: 'teacher', phone: '+998901112244' }, 't1')).not.toThrow()
-    delete process.env.OWNER_PHONES
+    expect(() => authorizeUpload({ id: 's1', role: 'student', email: 's1@gmail.com' })).toThrow()
+    expect(() => authorizeUpload({ id: 't1', role: 'teacher', email: null }, 't1')).not.toThrow()
+    delete process.env.OWNER_EMAILS
   })
 })

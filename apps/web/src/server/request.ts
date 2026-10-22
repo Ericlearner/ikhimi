@@ -62,7 +62,7 @@ export function route<Args extends unknown[]>(handler: (req: Request, ...args: A
   }
 }
 
-/** An API route crashed: the owner hears about it in Telegram (once an hour per route), after the response */
+/** An API route crashed: the owner hears about it (once an hour per route), after the response */
 function reportCrash(req: Request, err: unknown) {
   try {
     const path = new URL(req.url).pathname

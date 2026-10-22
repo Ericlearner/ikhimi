@@ -6,9 +6,7 @@ import { requireSession, route } from '@/server/request'
 export const GET = route(async () => {
   const { user } = await requireSession()
   const db = getDb()
-  // The password hash stays on the server, even in the person's own export
-  const [row] = await db.select().from(users).where(eq(users.id, user.id))
-  const { passwordHash: _p, ...me } = row!
+  const [me] = await db.select().from(users).where(eq(users.id, user.id))
   const myAttempts = await db.select().from(attempts).where(eq(attempts.studentId, user.id))
   const data = {
     exportedAt: new Date().toISOString(),

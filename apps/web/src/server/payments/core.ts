@@ -4,7 +4,7 @@ import { ownsCourse } from '../courses'
 import { addMonths, planStart } from '../plans'
 import { getPricing } from '../pricing'
 
-export type ProviderId = 'test' | 'card'
+export type ProviderId = 'test'
 export type PaymentRow = typeof payments.$inferSelect
 
 /** What a provider adapter must do. Webhooks are provider-specific routes that call markPaid / markCancelled. */
@@ -168,8 +168,6 @@ export async function markPaid(db: Db, paymentId: string, raw: Record<string, un
   } else if (row.pkg) {
     await db.update(planPackages).set({ status: 'active', periodStart: now, periodEnd: addMonths(now, row.pkg.months) }).where(eq(planPackages.id, row.pkg.id))
   }
-  // A Telegram note never holds up or fails the provider's callback
-  await import('../telegram/shop').then((m) => m.notifyPlanPaid(db, paymentId)).catch((e) => console.error('[telegram notify]', e))
   return loadPayment(db, paymentId)
 }
 

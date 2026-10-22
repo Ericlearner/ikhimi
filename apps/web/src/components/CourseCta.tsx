@@ -1,5 +1,5 @@
 'use client'
-import { CreditCard, Play, Send, ShieldCheck } from 'lucide-react'
+import { CreditCard, Play, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -13,7 +13,7 @@ type Access = 'owner' | 'bought' | 'group' | 'enrolled' | 'open'
 
 /**
  * The course page's action: start or continue, and for a paid course not bought yet (DECISIONS.md BL) its price
- * with the way to buy it (a payment gateway once connected, or a bank transfer in the Telegram bot) next to "try the free part".
+ * with the way to buy it (a payment gateway, once one is connected) next to "try the free part".
  * Nothing is sold in the store apps: there only the free part.
  */
 export function CourseCta({
@@ -25,7 +25,6 @@ export function CourseCta({
   buy,
   priceKrw,
   providers = [],
-  telegramBot = null,
   store = false,
   justPaid = false,
 }: {
@@ -38,7 +37,6 @@ export function CourseCta({
   buy: boolean
   priceKrw: number | null
   providers?: { id: string; label: string }[]
-  telegramBot?: string | null
   store?: boolean
   justPaid?: boolean
 }) {
@@ -148,15 +146,6 @@ export function CourseCta({
             <ShieldCheck size={18} strokeWidth={ICON.strokeWidth} className="mt-0.5 shrink-0 text-success-600" aria-hidden />
             {t('plans.secure')}
           </p>
-        </>
-      ) : telegramBot ? (
-        <>
-          <a href={`https://t.me/${telegramBot}?start=course_${courseId}`} target="_blank" rel="noopener noreferrer" className="btn btn-telegram btn-lg">
-            <span className="btn-label">
-              <Send size={20} strokeWidth={ICON.strokeWidth} aria-hidden /> {t('courseSale.buyTelegram')}
-            </span>
-          </a>
-          <p className="t-small text-ink-500">{t('courseSale.buyTelegramHint')}</p>
         </>
       ) : (
         <p className="t-body text-ink-500">{t('course.noProviders')}</p>

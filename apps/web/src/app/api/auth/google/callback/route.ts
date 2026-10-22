@@ -3,8 +3,8 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { eq, getDb, googleAccounts, users } from '@ikhimi/db'
 import { createSession } from '@/server/auth/session'
-import { findOrCreateUserByPhone, signInRole } from '@/server/auth/users'
-import { exchangeGoogleCode, GOOGLE_COOKIE, googleConfig, googlePhone, type GoogleFlow } from '@/server/google'
+import { accountForSignIn, signInRole } from '@/server/auth/users'
+import { exchangeGoogleCode, GOOGLE_COOKIE, googleConfig, type GoogleFlow } from '@/server/google'
 import { getLocale, setSessionCookie } from '@/server/request'
 import { safeNext } from '@/server/student-pages'
 
@@ -21,9 +21,9 @@ function readFlow(raw: string | undefined): GoogleFlow | null {
 }
 
 /**
- * Google sends the person back here. The account is the one the Google account is linked to (google_accounts; after
- * linking Telegram it may be an older account with a phone number, server/auth/link.ts), else a new one whose phone
- * column is `google:<Google user id>`. Then the sign-in page: the welcome questions for a new account, else `next`.
+ * Google sends the person back here. The account is the one the Google account is linked to, else the one with the
+ * same verified email (made with Apple in the iOS app), else a new one whose phone column is `google:<Google user id>`
+ * (server/auth/users.ts). Then the sign-in page: the welcome questions for a new account, else `next`.
  */
 export async function GET(req: Request) {
   const url = new URL(req.url)
@@ -44,23 +44,9 @@ export async function GET(req: Request) {
   if (!google) return back(signin('&error=google'))
 
   const db = getDb()
-  const [link] = await db.select({ userId: googleAccounts.userId }).from(googleAccounts).where(eq(googleAccounts.sub, google.sub)).limit(1)
-  const [linked] = link ? await db.select().from(users).where(eq(users.id, link.userId)).limit(1) : []
-  let user: typeof users.$inferSelect
-  if (linked) {
-    // Signing in within 30 days of deleting the account restores it (spec §12)
-    if (linked.deletedAt) await db.update(users).set({ deletedAt: null }).where(eq(users.id, linked.id))
-    user = { ...linked, deletedAt: null }
-    if (google.email) await db.update(googleAccounts).set({ email: google.email, updatedAt: new Date() }).where(eq(googleAccounts.sub, google.sub))
-  } else {
-    const made = await findOrCreateUserByPhone(db, { phone: googlePhone(google.sub), role: flow.as, uiLocale: await getLocale() })
-    user = made.user
-    await db.insert(googleAccounts).values({ userId: user.id, sub: google.sub, email: google.email }).onConflictDoNothing()
-    if (made.isNew && google.name && google.name.length >= 2) {
-      await db.update(users).set({ fullName: google.name }).where(eq(users.id, user.id))
-      user.fullName = google.name
-    }
-  }
+  const { user, isNew } = await accountForSignIn(db, { provider: 'google', sub: google.sub, email: google.email, role: flow.as, uiLocale: await getLocale() })
+  if (google.email) await db.update(googleAccounts).set({ email: google.email, updatedAt: new Date() }).where(eq(googleAccounts.sub, google.sub))
+  if (isNew && google.name && google.name.length >= 2) await db.update(users).set({ fullName: google.name }).where(eq(users.id, user.id))
   // Blocked by staff (admin panel)
   if (user.blockedAt) return back(signin('&error=blocked'))
 

@@ -16,7 +16,7 @@ export function UserActions(props: {
   dailyCap: number | null
   defaultCap: number
   canManage: boolean
-  canRevealPhone: boolean
+  canRevealEmail: boolean
   /** Plans and packages may be given here (also on an owner's own account) */
   canPlan: boolean
   /** The user's student plan now, and its end (formatted) */
@@ -29,7 +29,7 @@ export function UserActions(props: {
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<string | null>(null)
-  const [phone, setPhone] = useState<string | null>(null)
+  const [email, setEmail] = useState<string | null>(null)
   const [reason, setReason] = useState('')
   const [cap, setCap] = useState(props.dailyCap == null ? '' : String(props.dailyCap))
   const [course, setCourse] = useState('')
@@ -48,25 +48,25 @@ export function UserActions(props: {
     const { ok, json } = await postJson(`/api/admin/users/${props.userId}`, { action, ...extra })
     setBusy(null)
     if (!ok) return setError(json.error === 'reauth' ? t('admin.verify.title') : json.error === 'course_not_found' ? t('admin.users.courseNotFound') : t('error.generic'))
-    if (action === 'reveal_phone') return setPhone(String(json.phone))
+    if (action === 'reveal_email') return setEmail(String(json.email))
     setDone(action)
     router.refresh()
   }
 
-  if (!props.canManage && !props.canRevealPhone && !props.canPlan) return null
+  if (!props.canManage && !props.canRevealEmail && !props.canPlan) return null
   return (
     <div className="flex flex-col gap-4 rounded-lg border border-paper-300 bg-paper-50 p-4">
       <h3 className="t-h3">{t('admin.users.actions')}</h3>
-      {props.canRevealPhone && (
+      {props.canRevealEmail && (
         <div className="flex flex-wrap items-center gap-2">
-          {phone ? (
-            <span className="t-body t-num font-medium">{phone}</span>
+          {email ? (
+            <span className="t-body font-medium">{email}</span>
           ) : (
-            <Button size="sm" variant="secondary" loading={busy === 'reveal_phone'} onClick={() => act('reveal_phone')}>
-              {t('admin.users.showPhone')}
+            <Button size="sm" variant="secondary" loading={busy === 'reveal_email'} onClick={() => act('reveal_email')}>
+              {t('admin.users.showEmail')}
             </Button>
           )}
-          <span className="t-small text-ink-400">{t('admin.users.showPhoneNote')}</span>
+          <span className="t-small text-ink-400">{t('admin.users.showEmailNote')}</span>
         </div>
       )}
 

@@ -52,10 +52,6 @@
 
   /* Text on orange fills stays dark in BOTH themes (the spec's ink-800 turns light in dark mode). */
   --on-orange: #1f2d3a;
-  /* Telegram's blue, darkened so white text passes AA. */
-  --telegram: #1a73b5;
-  --telegram-hover: #16639c;
-  --on-telegram: #ffffff;
   /* Sign in with Apple: black on light backgrounds, white on dark (Apple's button guidelines) */
   --apple: #000000;
   --on-apple: #ffffff;

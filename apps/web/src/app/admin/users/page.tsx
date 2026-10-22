@@ -38,7 +38,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="t-body truncate font-medium">{u.fullName ?? '—'}</span>
                   <span className="t-small t-num text-ink-500">
-                    {maskForStaff(u.phone)} · {t('admin.users.joined', { date: formatDate(u.createdAt) })}
+                    {maskForStaff(u.email, u.phone)} · {t('admin.users.joined', { date: formatDate(u.createdAt) })}
                     {u.lastActiveAt ? ` · ${t('admin.users.lastActive', { date: formatDate(u.lastActiveAt) })}` : ''}
                   </span>
                 </span>

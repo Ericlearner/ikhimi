@@ -15,6 +15,6 @@ describe('message catalog', () => {
   })
 
   it('interpolates', () => {
-    expect(t('ko', 'auth.codeSentTo', { phone: '010-1234-5678' })).toBe('010-1234-5678(으)로 인증번호를 보냈어요')
+    expect(t('ko', 'notify.graded', { title: 'Unit 3', percent: 90 })).toBe('✅ “Unit 3” 채점이 끝났어요: 90%')
   })
 })

@@ -4,7 +4,7 @@ import { and, eq, getDb, planPackages, sessions, subscriptions, teacherProfiles,
 import { courseBySlug } from '@/server/courses'
 import { giveVipGift, grantPlan } from '@/server/plans'
 import { apiStaff } from '@/server/admin/guard'
-import { audit, ownerPhones } from '@/server/admin/staff'
+import { audit, isOwner } from '@/server/admin/staff'
 import { HttpError, route } from '@/server/request'
 
 const body = z.discriminatedUnion('action', [
@@ -13,7 +13,7 @@ const body = z.discriminatedUnion('action', [
   z.object({ action: z.literal('reset_cap') }),
   /** null = back to the default limit */
   z.object({ action: z.literal('set_cap'), cap: z.number().int().min(0).max(500).nullable() }),
-  z.object({ action: z.literal('reveal_phone') }),
+  z.object({ action: z.literal('reveal_email') }),
   z.object({ action: z.literal('grant_course'), courseSlug: z.string().trim().min(1).max(120) }),
   z.object({ action: z.literal('revoke_subscription'), subscriptionId: z.string().max(40) }),
   /** A student plan for some days (after a running one of the same kind); plan null takes staff-given plans back */
@@ -28,19 +28,19 @@ const body = z.discriminatedUnion('action', [
 export const POST = route(async (req, ctx: { params: Promise<{ id: string }> }) => {
   const db = getDb()
   const input = body.parse(await req.json())
-  const { session } = await apiStaff(db, input.action === 'reveal_phone' ? 'users.phone' : 'users.manage')
+  const { session } = await apiStaff(db, input.action === 'reveal_email' ? 'users.email' : 'users.manage')
   const id = (await ctx.params).id
   const [user] = await db.select().from(users).where(eq(users.id, id)).limit(1)
   if (!user) throw new HttpError(404, 'not_found')
   const log = (details: Record<string, unknown> = {}) => audit(db, session.user.id, `user.${input.action}`, { type: 'user', id }, details)
 
   switch (input.action) {
-    case 'reveal_phone':
+    case 'reveal_email':
       await log()
-      return NextResponse.json({ phone: user.phone })
+      return NextResponse.json({ email: user.email })
     case 'block':
       // Nobody blocks an owner or themselves
-      if (user.id === session.user.id || ownerPhones().includes(user.phone)) throw new HttpError(403, 'forbidden')
+      if (user.id === session.user.id || isOwner(user)) throw new HttpError(403, 'forbidden')
       await db.update(users).set({ blockedAt: new Date(), blockedReason: input.reason || null }).where(eq(users.id, id))
       await db.delete(sessions).where(eq(sessions.userId, id))
       await log({ reason: input.reason })
@@ -72,13 +72,13 @@ export const POST = route(async (req, ctx: { params: Promise<{ id: string }> }) 
     }
     case 'set_plan': {
       // Owners may give themselves a plan (to test it); other staff only give plans to others
-      if (user.id === session.user.id && !ownerPhones().includes(session.user.phone)) throw new HttpError(403, 'forbidden')
+      if (user.id === session.user.id && !isOwner(session.user)) throw new HttpError(403, 'forbidden')
       const until = await grantPlan(db, id, input.plan, input.days)
       await log({ plan: input.plan, days: input.days, until: until?.toISOString() ?? null })
       break
     }
     case 'grant_package': {
-      if (user.id === session.user.id && !ownerPhones().includes(session.user.phone)) throw new HttpError(403, 'forbidden')
+      if (user.id === session.user.id && !isOwner(session.user)) throw new HttpError(403, 'forbidden')
       const [p] = await db.select().from(teacherProfiles).where(eq(teacherProfiles.userId, id)).limit(1)
       if (!p) throw new HttpError(409, 'not_teacher')
       const now = new Date()

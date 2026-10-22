@@ -74,8 +74,8 @@ Two ways to make homework: ${L('compose.mode.create')} (the AI writes new exerci
     text: ({ L }) => `Publishing and sending homework to students.
 - On the draft press ${L('action.publish')}. ${L('publish.chooseGroup')}: ${L('publish.existingGroup')} or ${L('publish.createGroup')} (a name like 9-B; level, start date, number of students and a note are optional and only for you, the AI never uses them). Every homework belongs to a group; groups are made this way.
 - ${L('publish.due')}: how long students have (topic deadline).
-- Then ${L('share.title')}: the link with ${L('action.copyLink')}, ${L('share.qrLink')} and ${L('share.telegram')}. A student who opens the link once joins the group and later sees the group's homework without links. Students can also join with the group code (topic students).
-- Students whose Telegram is linked get a message about new homework, and the evening before the deadline a reminder if they haven't handed it in.
+- Then ${L('share.title')}: the link with ${L('action.copyLink')}, ${L('share.qrLink')} and ${L('action.share')} (the phone's share sheet: KakaoTalk, messages). A student who opens the link once joins the group and later sees the group's homework without links. Students can also join with the group code (topic students).
+- Students with the iPhone app (notifications on) get a notification about new homework, and the evening before the deadline a reminder if they haven't handed it in. Others see their homework in My work.
 - Opening your own homework link shows it as students see it (a preview; you are not counted as a student).`,
   },
   {
@@ -89,7 +89,7 @@ Two ways to make homework: ${L('compose.mode.create')} (the AI writes new exerci
     id: 'students',
     text: ({ L }) => `How students join and do homework.
 - They open the homework link or QR code, or type the group code: it is on the group page (${L('groups.joinCode')}, 6 letters and digits); the student opens ${L('nav.myWork')} → ${L('joinGroup.open')} and types it. Either way they are in your group and see all of its homework.
-- Students sign in with Telegram in one tap (or phone and password); a new account chooses ${L('auth.roleStudent')}. They need nothing else: homework works in the phone's browser, and 익히미 also has phone apps.
+- Students sign in with their Google account in one tap (Apple in the iPhone app); a new account chooses ${L('auth.roleStudent')}. They need nothing else: homework works in the phone's browser, and 익히미 also has phone apps.
 - Answers are checked at once and saved even without internet. Wrong answers come back later in ${L('review.title')} so they are learned.
 - Only students in your groups appear in your results; a student sees their own results and the class average, never classmates' scores (unless you turn on the group ranking, topic groups).`,
   },
@@ -98,7 +98,7 @@ Two ways to make homework: ${L('compose.mode.create')} (the AI writes new exerci
     text: ({ L, t }) => `Results of a homework (open it from the group page or ${L('nav.reports')}).
 - ${L('report.average')}, ${L('report.submissionRate')}, ${L('report.medianTime')}, every student's score, ${L('report.hardest')} and ${L('report.commonWrong')}.
 - A typed answer marked wrong that is actually right: press the button under it that reads ${t('report.acceptAnswer').replace('{answer}', '…')} (with that answer in place of …). It becomes accepted, every student who wrote it is re-scored, and later students get it right.
-- ${L('remind.button')}: a reminder to everyone in the group who hasn't handed in yet and has Telegram linked (once a day per student; it says how many have no Telegram).
+- ${L('remind.button')}: a notification to everyone in the group who hasn't handed in yet and has the iPhone app with notifications on (once a day per student; it says how many it can't reach).
 - Written work and essays: topic writing. ${L('report.studentPage')} opens a student's progress (topic student).
 - Each student's plan decides which exercises they see; exercises outside it show as not shown to that student.`,
   },
@@ -175,7 +175,7 @@ Two ways to make homework: ${L('compose.mode.create')} (the AI writes new exerci
     text: ({ L, prices }) => `Packages: plans for your class (${L('nav.packages')}).
 - ${L('packages.buy')}: choose the group, Pro or VIP, how many places and months. A package is always ${prices.teacherDiscount}% cheaper than students buying themselves.
 - ${L('packages.howSeats')} A student who already has as good a plan doesn't take a place.
-- Until card payment on the website is connected, a package is paid by bank transfer through the 익히미 team in Telegram.`,
+- Packages can be bought once card payment on the website is connected; until then the page says it's not available yet.`,
   },
   {
     id: 'earnings',
@@ -190,7 +190,7 @@ Two ways to make homework: ${L('compose.mode.create')} (the AI writes new exerci
 - ${L('course.new')} → name → ${L('course.create')}. ${L('course.addLesson')}: a title, a video link (YouTube or Vimeo only: upload the video there, unlisted, and paste the link), notes, and one of your published homeworks. ${L('lesson.preview')} lets anyone watch that lesson.
 - ${L('course.visibility')}: ${L('course.visibility.private')} (you and your linked groups only), ${L('course.visibility.unlisted')} (anyone with the link) or ${L('course.visibility.marketplace')} (listed for everyone).
 - ${L('course.groups')}: students of the groups you tick get the course free.
-- A course open to others needs the admin's approval once: add at least one lesson and press ${L('courseReview.submit')}. You hear the answer in Telegram; a returned course comes with a note, fix it and ${L('courseReview.resubmit')}. Later changes need no new approval. A private course needs none.`,
+- A course open to others needs the admin's approval once: add at least one lesson and press ${L('courseReview.submit')}. You hear the answer in the iPhone app (and see it on the course page); a returned course comes with a note, fix it and ${L('courseReview.resubmit')}. Later changes need no new approval. A private course needs none.`,
   },
   {
     id: 'course_price',
@@ -198,16 +198,15 @@ Two ways to make homework: ${L('compose.mode.create')} (the AI writes new exerci
     text: ({ L }) => `A course's price (${L('courseSale.pricing')}).
 - ${L('courseSale.planCovered')}: the course is free; its homework opens by each student's own plan, like any homework.
 - ${L('courseSale.paid')}: you set the price, at least ${won(CONFIG.courses.minPriceKrw)}. A student buys it once, for life, and does all its homework with every feature whatever their plan; others get only the vocabulary exercises and the preview lessons. ${CONFIG.courses.teacherSharePercent}% of every sale is yours (${L('nav.earnings')}).
-- Students buy on the course page through the 익히미 bot in Telegram (bank transfer), never inside the store apps.`,
+- Students buy on the course page once card payment is connected, never inside the store apps.`,
   },
   {
     id: 'account',
     text: ({ L }) => `Account and settings (Profile).
-- Signing in: phone number and password. First time, or forgot the password: confirm with Telegram (the bot asks you to share your number), then set a password in Profile → ${L('password.title')}.
-- ${L('link.telegram')}: links your Telegram so you get messages (and so your students get theirs, on their side).
+- Signing in: ${L('auth.googleLogin')} with a Google account; no password to remember. In the iPhone app: ${L('auth.appleLogin')}. The same email opens the same account either way.
 - One account can be both teacher and student: the side open now is shown next to your picture; switch in Profile → ${L('settings.accountType')}.
 - Profile also has ${L('profile.defaults')} for new homework, ${L('settings.notifications')}, ${L('settings.export')} and ${L('settings.delete')} (restored if you sign in again within 30 days).
-- Changing the phone number isn't available yet.`,
+- Changing the Google account an account signs in with isn't available yet.`,
   },
   {
     id: 'problems',

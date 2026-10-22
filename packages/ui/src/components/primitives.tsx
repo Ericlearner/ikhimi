@@ -22,7 +22,7 @@ const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).jo
 
 // ─── Button ─────────────────────────────────────────────────────────────────
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'telegram' | 'apple'
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'apple'
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl'
 
 type BtnOwn = { variant?: ButtonVariant; size?: ButtonSize; loading?: boolean; pill?: boolean; icon?: ReactNode }

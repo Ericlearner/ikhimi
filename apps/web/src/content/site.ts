@@ -15,8 +15,6 @@ export const SITE = {
   /** 개인정보 보호책임자 (PIPA art. 31) */
   privacyOfficer: '[개인정보 보호책임자 성명·연락처]',
   supportEmail: '[support@ikhimi.kr]',
-  /** The login bot doubles as support unless a separate support bot is configured */
-  supportBot: process.env.SUPPORT_BOT_USERNAME || process.env.TELEGRAM_BOT_USERNAME || 'ikhimi_bot',
   refundPolicy: '[환불 규정: 아직 정하지 않음]',
   /** Versioned so a material change can ask users to accept again */
   legalVersion: '0.1',
@@ -27,4 +25,5 @@ export const SITE = {
   hosting: { app: 'Vercel [리전]', db: 'Neon [리전]', ai: 'Google Gemini' },
 } as const
 
-export const supportBotUrl = () => `https://t.me/${SITE.supportBot}`
+/** Support is by email (the help chat's "write to the team" opens the same address) */
+export const supportMailto = () => `mailto:${SITE.supportEmail}`

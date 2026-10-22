@@ -1,6 +1,6 @@
 /**
  * Accounts deleted more than 30 days ago are erased, as the privacy policy promises (§7; until then, signing in again
- * restores them). Who the person was goes: name, number, Telegram, settings, profile details and sign-in traces. A
+ * restores them). Who the person was goes: name, email, settings, profile details and sign-in traces (the Google and Apple links too). A
  * student's answers go too. Payment records stay, as the law requires, and so does a teacher's published homework,
  * which other students did, without the teacher's name. Runs in the daily job (app/api/cron/daily).
  */
@@ -12,12 +12,12 @@ import {
   conversations,
   enrollments,
   eq,
+  googleAccounts,
   helpQuestions,
   inArray,
   lte,
   messages,
   or,
-  otpCodes,
   parentLinks,
   pushDevices,
   reviewItems,
@@ -25,13 +25,12 @@ import {
   sql,
   studentProfiles,
   teacherProfiles,
-  telegramLogins,
   users,
   type Db,
 } from '@ikhimi/db'
 
 export const PURGE_AFTER_DAYS = 30
-/** The phone of an erased account: not a number anyone can sign in with, and still unique */
+/** The sign-in key (phone column) of an erased account: nothing anyone can sign in with, and still unique */
 const ERASED = 'deleted:'
 
 export async function purgeDeletedAccounts(db: Db, now = new Date(), limit = 50) {
@@ -67,14 +66,13 @@ async function eraseAccount(db: Db, u: { id: string; phone: string }) {
   await db.delete(sessions).where(eq(sessions.userId, u.id))
   await db.delete(pushDevices).where(eq(pushDevices.userId, u.id))
   await db.delete(appleAccounts).where(eq(appleAccounts.userId, u.id))
-  await db.delete(otpCodes).where(eq(otpCodes.phone, u.phone))
-  await db.delete(telegramLogins).where(eq(telegramLogins.phone, u.phone))
+  await db.delete(googleAccounts).where(eq(googleAccounts.userId, u.id))
   await db.delete(studentProfiles).where(eq(studentProfiles.userId, u.id))
   await db.delete(teacherProfiles).where(eq(teacherProfiles.userId, u.id))
 
   // The account row stays (payments point at it), with nothing left that says who it was
   await db
     .update(users)
-    .set({ phone: `${ERASED}${u.id}`, fullName: null, avatarUrl: null, telegramChatId: null, prefs: {}, phoneVerifiedAt: null, blockedReason: null })
+    .set({ phone: `${ERASED}${u.id}`, email: null, fullName: null, avatarUrl: null, prefs: {}, blockedReason: null })
     .where(eq(users.id, u.id))
 }

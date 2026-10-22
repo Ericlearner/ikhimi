@@ -8,7 +8,7 @@ import { postJson } from '@/lib/client'
 
 type Result = { sent: number; already: number; unreachable: number; pending: number }
 
-/** The report's "remind them": a Telegram message to every student of the group who hasn't handed it in */
+/** The report's "remind them": an iOS app notification to every student of the group who hasn't handed it in */
 export function RemindButton({ assignmentId, pending }: { assignmentId: string; pending: number }) {
   const { t } = useI18n()
   const [busy, setBusy] = useState(false)

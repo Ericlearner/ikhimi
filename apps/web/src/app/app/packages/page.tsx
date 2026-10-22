@@ -8,8 +8,7 @@ import { AutoRefresh } from '@/components/AutoRefresh'
 import { PackageGroup } from '@/components/PackageGroup'
 import { PlanCheckout } from '@/components/PlanCheckout'
 import { getT } from '@/i18n/server'
-import { enabledProviders, payInTelegram } from '@/server/payments/providers'
-import { supportBotUrl } from '@/content/site'
+import { enabledProviders } from '@/server/payments/providers'
 import { seatsUsed } from '@/server/plans'
 import { getPricing } from '@/server/pricing'
 import { getSession } from '@/server/request'
@@ -102,8 +101,6 @@ export default async function Packages({ searchParams }: { searchParams: Promise
             pricing={await getPricing(db)}
             maxSeats={CONFIG.plans.maxSeats}
             providers={enabledProviders().map((p) => ({ id: p.id, label: p.label }))}
-            telegramBot={payInTelegram()}
-            supportUrl={supportBotUrl()}
             groups={myGroups}
           />
           <p className="t-small text-center text-ink-500">{t('packages.howSeats')}</p>

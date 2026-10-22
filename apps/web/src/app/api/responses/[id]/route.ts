@@ -31,7 +31,7 @@ export const PATCH = route(async (req, ctx: { params: Promise<{ id: string }> })
   authorize(user, 'assignment:update', { teacherId: row.teacherId })
   if (row.status === 'in_progress') throw new HttpError(409, 'not_submitted')
   const at = await overrideResponse(db, id, body.parse(await req.json()))
-  // The last answer that was waiting is graded: the student hears their result in Telegram
+  // The last answer that was waiting is graded: the student hears their result in the iOS app
   if (row.status === 'submitted' && at?.status === 'graded') after(() => notifyGraded(getDb(), at.id).catch((e) => console.warn('[notify] graded', e)))
   return NextResponse.json({ status: at?.status, percent: at?.percent })
 })

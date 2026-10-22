@@ -280,13 +280,12 @@ export async function teacherCommissions(db: Db, now = new Date()) {
 
 // ─── users ──────────────────────────────────────────────────────────────────
 
-/** Search by name or by any part of the phone number */
+/** Search by name or by any part of the email */
 export async function searchUsers(db: Db, q: string, limit = 50) {
-  const digits = q.replace(/\D/g, '')
-  const name = q.trim()
+  const name = q.trim().replace(/[%_]/g, '')
   const where = !name
     ? isNull(users.deletedAt)
-    : and(isNull(users.deletedAt), or(ilike(users.fullName, `%${name.replace(/[%_]/g, '')}%`), digits.length >= 3 ? ilike(users.phone, `%${digits}%`) : sql`false`))
+    : and(isNull(users.deletedAt), or(ilike(users.fullName, `%${name}%`), name.length >= 3 ? ilike(users.email, `%${name.toLowerCase()}%`) : sql`false`))
   return db.select().from(users).where(where).orderBy(desc(users.lastActiveAt), desc(users.createdAt)).limit(limit)
 }
 
@@ -449,7 +448,7 @@ export async function staffOverview(db: Db) {
     .select({ m: staffMembers, roleName: staffRoles.name, user: { id: users.id, fullName: users.fullName } })
     .from(staffMembers)
     .innerJoin(staffRoles, eq(staffRoles.id, staffMembers.roleId))
-    .leftJoin(users, eq(users.phone, staffMembers.phone))
+    .leftJoin(users, eq(users.email, staffMembers.email))
     .where(isNull(staffMembers.revokedAt))
     .orderBy(desc(staffMembers.createdAt))
   return { roles, members }

@@ -656,7 +656,7 @@ function Shadowing({ attemptId, exerciseId, lines, mode, value, onChange, locked
           </span>
         </button>
       )}
-      {!!attemptId && noMic && /Telegram/i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') && <p className="t-small text-ink-500">{t('shadow.openInBrowser')}</p>}
+      {!!attemptId && noMic && /KAKAOTALK|Telegram|Instagram|FBAN|FBAV|Line\//i.test(typeof navigator !== 'undefined' ? navigator.userAgent : '') && <p className="t-small text-ink-500">{t('shadow.openInBrowser')}</p>}
     </div>
   )
 }

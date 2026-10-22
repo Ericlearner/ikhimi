@@ -14,11 +14,10 @@ section was decided for that app and is kept as the history of how the product w
   language's name, its exams or its own script do.
 - **Exams:** 수능 영어 (CSAT) and TOEIC were added first for English; Uzbekistan's national exam was removed.
 - **Money:** integer won (KRW), shown as 9,900원. Defaults: Pro 9,900원, VIP 14,900원 a month per student; a paid course
-  10,000원 to 2,000,000원. Payme and Click were removed; until a Korean gateway (e.g. Toss Payments) is connected,
-  people pay by bank transfer (계좌이체) in the Telegram bot (`PAY_ACCOUNT_NUMBER`, `PAY_BANK_NAME`,
-  `PAY_ACCOUNT_HOLDER`), approved by hand as before.
+  10,000원 to 2,000,000원. Payme and Click were removed; nothing is sold until a Korean gateway (e.g. Toss
+  Payments) is connected (the bank transfers in the Telegram bot went with Telegram, see "Google sign-in only").
 - **Time:** Seoul (UTC+9) for days, deadlines, streaks and the daily job (18:00 KST = `0 9 * * *` UTC).
-- **Phones:** Korean numbers by default (010-1234-5678); login codes by Telegram Gateway or Twilio (`SMS_PROVIDER`).
+- **Sign-in:** Google only (Apple in the iOS app); no phone numbers, codes or passwords (see "Google sign-in only").
 - **Privacy filter:** Korean names are caught with particles attached and by given name alone; Korean phone numbers
   and 주민등록번호 are caught too.
 - **Legal:** the privacy policy and terms are drafts for Korean law (개인정보 보호법, 전자상거래법), with the
@@ -30,8 +29,33 @@ section was decided for that app and is kept as the history of how the product w
 - **Apps:** new IDs `kr.ikhimi.app` (Android, iOS) and `kr.ikhimi.app.web` (the website's APK); a new signing key is
   needed, and the APK download stays hidden until `ANDROID_APK_VERSION` is set.
 
-Open for the Korean version: the domain, a payment gateway, KakaoTalk (Koreans use it far more than Telegram for
-notifications and support), a Korean SMS provider, the business registration, and where the data is hosted.
+Open for the Korean version: the domain, a payment gateway, KakaoTalk notifications (알림톡) for people without the
+iOS app, the business registration, and where the data is hosted.
+
+## Google sign-in only (2026-10-22)
+
+The owner removed Telegram: Korean teachers and students rarely use it. Replaces G, AG, BE's account linking, BF and
+BI, and the Telegram parts of BA and BN.
+- **Sign-in:** "Google로 계속하기" on the website and in both Android apps (they are Chrome, Trusted Web Activity, so
+  Google works there). The iOS app is a web view, where Google refuses to sign in, so it keeps Sign in with Apple
+  (rule 4.8). Phone numbers with codes, passwords, the Telegram login and the store-review login are gone; App
+  Review signs in with its own Apple ID.
+- **One account per person:** an account remembers the verified email Google gives (and Apple's, unless the person
+  hides it). A Google account or Apple ID opens the account it is linked to, else the account with the same email,
+  else a new one (`server/auth/users.ts accountForSignIn`). "Hide My Email" on Apple makes a separate account.
+  The phone column stays as the sign-in key (`google:<id>`, `apple:<id>`, `deleted:<id>`), never shown.
+- **Owner and staff:** `OWNER_EMAILS` replaces `OWNER_PHONES`; assistants are added by Google email (staff added by
+  phone number were cleared by migration 0030). Staff see emails masked (j•••@gmail.com); revealing one is logged.
+- **Notifications:** only in the iOS app (push), with the same once-only keys. Others see homework in 내 숙제; the
+  teacher's reminder says how many it can't reach. Owner alerts (crashes, the daily job, storage, courses awaiting
+  approval) go to the owners' iPhones and always to the server log.
+- **Sharing:** "텔레그램으로 보내기" became the phone's share sheet (KakaoTalk is in it).
+- **Support:** by email (`SITE.supportEmail`). The help chat's "팀에 메일 쓰기" opens the teacher's mail app with the
+  last question and answer; nothing passes through 익히미, so there is no daily limit or support table any more.
+- **Payments:** the bank-transfer shop lived in the bot, so nothing is sold until a gateway is connected; the plans,
+  packages and course pages say so. Test payments still never count as revenue or earnings.
+- **Removed settings:** `AUTH_PEPPER`, `SMS_PROVIDER`, `TELEGRAM_*`, `SUPPORT_*`, `ALERT_CHAT_ID`, `PAY_*`,
+  `REVIEW_LOGIN_*`, `OWNER_PHONES`. Migration 0031 drops their tables and columns.
 
 ---
 

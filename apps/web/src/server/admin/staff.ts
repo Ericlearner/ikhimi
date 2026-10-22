@@ -1,8 +1,7 @@
 /**
- * Who may open the admin panel, and with which permissions. Owners are the phone numbers in OWNER_PHONES
- * (a setting, so nobody can remove them from inside the app); assistants are staff_members with a role.
- * Admin pages also need a recent sign-in: a session older than FRESH_HOURS must sign in again first (guard.ts), with a
- * password, a code, Apple or Google. Not with the Telegram link: someone could send an owner a login link and get in.
+ * Who may open the admin panel, and with which permissions. Owners are the Google emails in OWNER_EMAILS (a setting,
+ * so nobody can remove them from inside the app); assistants are staff_members with a role, matched by email too.
+ * Admin pages also need a recent sign-in: a session older than FRESH_HOURS must sign in again first (guard.ts).
  */
 import { adminAudit, and, eq, isNull, staffMembers, staffRoles, type Db, type SignInMethod } from '@ikhimi/db'
 import type { SessionUser, ValidatedSession } from '../auth/session'
@@ -17,28 +16,36 @@ export type StaffAccess = {
   permissions: Set<Permission>
 }
 
-export function ownerPhones(): string[] {
-  return (process.env.OWNER_PHONES ?? '')
-    .split(',')
-    .map((p) => p.replace(/[^\d+]/g, ''))
-    .filter((p) => /^\+\d{8,15}$/.test(p))
+/** A typed email the way accounts keep it (lower case), or null when it isn't one */
+export function normalizeEmail(raw: string): string | null {
+  const e = raw.trim().toLowerCase()
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && e.length <= 254 ? e : null
 }
 
-export async function staffAccess(db: Db, user: Pick<SessionUser, 'id' | 'phone' | 'blockedAt'>): Promise<StaffAccess | null> {
-  if (user.blockedAt) return null
-  if (ownerPhones().includes(user.phone)) return { userId: user.id, owner: true, roleName: null, permissions: new Set(PERMISSIONS) }
+export function ownerEmails(): string[] {
+  return (process.env.OWNER_EMAILS ?? '')
+    .split(',')
+    .map(normalizeEmail)
+    .filter((e): e is string => !!e)
+}
+
+export const isOwner = (user: Pick<SessionUser, 'email'>) => !!user.email && ownerEmails().includes(user.email)
+
+export async function staffAccess(db: Db, user: Pick<SessionUser, 'id' | 'email' | 'blockedAt'>): Promise<StaffAccess | null> {
+  if (user.blockedAt || !user.email) return null
+  if (isOwner(user)) return { userId: user.id, owner: true, roleName: null, permissions: new Set(PERMISSIONS) }
   const [row] = await db
     .select({ role: staffRoles })
     .from(staffMembers)
     .innerJoin(staffRoles, eq(staffRoles.id, staffMembers.roleId))
-    .where(and(eq(staffMembers.phone, user.phone), isNull(staffMembers.revokedAt)))
+    .where(and(eq(staffMembers.email, user.email), isNull(staffMembers.revokedAt)))
     .limit(1)
   if (!row) return null
   return { userId: user.id, owner: false, roleName: row.role.name, permissions: new Set(row.role.permissions.filter(isPermission)) }
 }
 
 /** Ways in that can't be done to someone by sending them a link */
-export const STRONG_METHODS: readonly SignInMethod[] = ['password', 'otp', 'apple', 'google']
+export const STRONG_METHODS: readonly SignInMethod[] = ['apple', 'google']
 
 export const isFresh = (s: Pick<ValidatedSession, 'createdAt' | 'method'>, now = Date.now()) =>
   now - s.createdAt.getTime() < FRESH_HOURS * 3600_000 && !!s.method && STRONG_METHODS.includes(s.method)

@@ -27,8 +27,9 @@ async function upsertUser(v: typeof users.$inferInsert) {
 
 const teacher = await upsertUser({
   role: 'teacher',
-  phone: '+821000000001',
-  phoneVerifiedAt: new Date(),
+  phone: 'seed:teacher',
+  // Signing in with Google as this email opens the demo teacher (server/auth/users.ts)
+  email: process.env.SEED_TEACHER_EMAIL?.trim().toLowerCase() || null,
   fullName: '김지은',
   uiLocale: 'ko',
 })
@@ -56,8 +57,7 @@ for (const def of groupDefs) {
     const first = FIRST[n]!
     const s = await upsertUser({
       role: 'student',
-      phone: `+8210000${String(100 + n).padStart(5, '0')}`,
-      phoneVerifiedAt: new Date(),
+      phone: `seed:student-${n + 1}`,
       fullName: `${surname(first, n)}${first}`,
       uiLocale: 'ko',
     })
@@ -65,5 +65,5 @@ for (const def of groupDefs) {
   }
 }
 
-console.log(`Seeded teacher ${teacher.fullName} (010-0000-0001), ${groupDefs.length} groups, ${n} students`)
+console.log(`Seeded teacher ${teacher.fullName} (${teacher.email ?? 'set SEED_TEACHER_EMAIL to sign in as them'}), ${groupDefs.length} groups, ${n} students`)
 process.exit(0)

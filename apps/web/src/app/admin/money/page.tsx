@@ -6,8 +6,6 @@ import { PricingForm } from '@/components/admin/PricingForm'
 import { getT } from '@/i18n/server'
 import { pageStaff } from '@/server/admin/guard'
 import { moneyStats, teacherCommissions } from '@/server/admin/stats'
-import { cardPayment } from '@/server/payments/card'
-import { cardProvider } from '@/server/payments/providers'
 import { getPricing } from '@/server/pricing'
 
 /** Plan prices, payment providers, revenue, teachers' commissions and recent payments */
@@ -16,7 +14,6 @@ export default async function AdminMoney() {
   const { access } = await pageStaff(db, 'money')
   const { t } = await getT()
   const [m, pricing, commissions] = await Promise.all([moneyStats(db, 30), getPricing(db), teacherCommissions(db)])
-  const bank = cardPayment()
   const testOn = process.env.PAYMENT_TEST_ENABLED === '1'
   return (
     <div className="flex flex-col gap-8">
@@ -24,15 +21,7 @@ export default async function AdminMoney() {
         <PricingForm pricing={pricing} canEdit={access.owner} />
       </Section>
       <Section title={t('admin.money.providers')}>
-        <div className="grid gap-2 md:grid-cols-2">
-          <div className="flex flex-col gap-2 rounded-lg border border-paper-300 bg-paper-50 p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="t-h3">{cardProvider.label}</span>
-              <Badge tone={bank ? 'success' : 'neutral'}>{bank ? t('admin.money.connected') : t('admin.money.notConnected')}</Badge>
-            </div>
-            {!bank && <p className="t-small text-ink-700">{t('admin.money.missing', { where: 'Vercel', vars: 'PAY_ACCOUNT_NUMBER, PAY_BANK_NAME, PAY_ACCOUNT_HOLDER' })}</p>}
-          </div>
-        </div>
+        <p className="t-body text-ink-700">{t('admin.money.noGateway')}</p>
         {testOn && <p className="t-small text-warn-600">{t('admin.money.testOn', { flag: 'PAYMENT_TEST_ENABLED=1' })}</p>}
       </Section>
       <Section title={t('admin.money.title30')}>

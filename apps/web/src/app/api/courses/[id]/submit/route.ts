@@ -5,7 +5,7 @@ import { isPaid, ownedCourse, submitCourse } from '@/server/courses'
 import { tellOwner } from '@/server/notify'
 import { HttpError, requireSession, route } from '@/server/request'
 
-/** The teacher sends a course for the admin's approval (DECISIONS.md BL); the owner hears it in Telegram */
+/** The teacher sends a course for the admin's approval (DECISIONS.md BL); the owner hears it (server/notify.ts tellOwner) */
 export const POST = route(async (_req, ctx: { params: Promise<{ id: string }> }) => {
   const { user } = await requireSession()
   const db = getDb()

@@ -47,21 +47,31 @@ async function applePublicKey(kid: string, fetcher: typeof fetch): Promise<KeyOb
 
 /**
  * Checks the identity token the iPhone got from Apple: Apple's signature, issued by Apple for this app, not expired.
- * Returns Apple's stable user id (`sub`), or null when anything is off.
+ * Returns Apple's stable user id (`sub`) and the person's own email when Apple verified it (not a hidden relay
+ * address), or null when anything is off.
  */
 export async function verifyAppleIdentityToken(token: string, bundleId: string, opts: { now?: number; fetcher?: typeof fetch } = {}) {
   const parts = token.split('.')
   if (parts.length !== 3) return null
   try {
     const header = JSON.parse(Buffer.from(parts[0]!, 'base64url').toString()) as { alg?: string; kid?: string }
-    const claims = JSON.parse(Buffer.from(parts[1]!, 'base64url').toString()) as { iss?: string; aud?: string; exp?: number; sub?: string }
+    const claims = JSON.parse(Buffer.from(parts[1]!, 'base64url').toString()) as {
+      iss?: string
+      aud?: string
+      exp?: number
+      sub?: string
+      email?: string
+      email_verified?: boolean | string
+      is_private_email?: boolean | string
+    }
     if (header.alg !== 'RS256' || !header.kid) return null
     const key = await applePublicKey(header.kid, opts.fetcher ?? fetch)
     if (!key) return null
     const ok = verify('RSA-SHA256', Buffer.from(`${parts[0]}.${parts[1]}`), key, Buffer.from(parts[2]!, 'base64url'))
     const now = (opts.now ?? Date.now()) / 1000
     if (!ok || claims.iss !== APPLE_ISSUER || claims.aud !== bundleId || !claims.exp || claims.exp < now || !claims.sub) return null
-    return { sub: claims.sub }
+    const verified = String(claims.email_verified) === 'true' && String(claims.is_private_email) !== 'true'
+    return { sub: claims.sub, email: verified && typeof claims.email === 'string' ? claims.email : null }
   } catch {
     return null
   }

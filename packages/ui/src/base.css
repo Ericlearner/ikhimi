@@ -126,8 +126,6 @@ body::before {
 .btn-ghost:active:not(:disabled) { transform: scale(0.97); }
 .btn-danger { background: transparent; color: var(--error-600); border: 1.5px solid var(--error-600); --ledge: 0px; margin-bottom: 0; }
 .btn-danger:hover:not(:disabled) { background: var(--error-100); }
-.btn-telegram { background: var(--telegram); color: var(--on-telegram); --ledge-color: var(--telegram-hover); }
-.btn-telegram:hover:not(:disabled) { background: var(--telegram-hover); }
 .btn-apple { background: var(--apple); color: var(--on-apple); --ledge-color: var(--ink-500); }
 .btn-sm { min-height: 36px; padding: 0 0.875rem; font-size: 0.875rem; border-radius: var(--r-md); }
 .btn-md { min-height: 44px; }

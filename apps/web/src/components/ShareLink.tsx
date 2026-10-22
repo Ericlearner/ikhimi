@@ -7,7 +7,7 @@ import { play } from '@ikhimi/ui/sound'
 import { useI18n } from '@/i18n/client'
 import { canShareNatively, shareNatively } from '@/lib/ios-app'
 
-/** Copy the link, send it in Telegram, or the phone's share sheet */
+/** Copy the link, or send it through the phone's share sheet (KakaoTalk, messages…) */
 export function ShareButtons({ url }: { url: string }) {
   const { t } = useI18n()
   const [copied, setCopied] = useState(false)
@@ -29,9 +29,6 @@ export function ShareButtons({ url }: { url: string }) {
       <Button variant="secondary" onClick={copy} icon={copied ? <Check size={18} strokeWidth={ICON.strokeWidth} aria-hidden /> : <Copy size={18} strokeWidth={ICON.strokeWidth} aria-hidden />}>
         {copied ? t('share.copied') : t('action.copyLink')}
       </Button>
-      <a href={`https://t.me/share/url?url=${encodeURIComponent(url)}`} target="_blank" rel="noopener noreferrer" className="btn btn-telegram btn-md">
-        <span className="btn-label">{t('share.telegram')}</span>
-      </a>
       {nativeShare && (
         <Button variant="secondary" onClick={() => void shareNatively({ url })} icon={<Share size={18} strokeWidth={ICON.strokeWidth} aria-hidden />}>
           {t('action.share')}

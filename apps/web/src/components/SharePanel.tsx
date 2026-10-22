@@ -9,7 +9,7 @@ import { CopyToGroup } from './CopyToGroup'
 import { DueEditor } from './DueEditor'
 import { ShareButtons } from './ShareLink'
 
-/** Publish success state (design spec §11 screen 3): large QR, copyable link, Telegram, live board. */
+/** Publish success state (design spec §11 screen 3): large QR, copyable link, the share sheet, live board. */
 export function SharePanel({
   assignmentId,
   url,

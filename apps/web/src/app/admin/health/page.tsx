@@ -7,9 +7,7 @@ import { usdToKrw } from '@/server/ai-usage'
 import { pageStaff } from '@/server/admin/guard'
 import { healthStats } from '@/server/admin/stats'
 import { storageUsage } from '@/server/storage-usage'
-import { getTelegramSettings, telegramStats } from '@/server/notify'
-import { TelegramLinks } from '@/components/admin/TelegramLinks'
-import { TelegramSetup } from '@/components/admin/TelegramSetup'
+import { notificationStats } from '@/server/notify'
 
 const KINDS = ['speech', 'pictures', 'image', 'pdf', 'doc', 'audio']
 const mb = (n: number) => (n >= 1024 * 1024 * 1024 ? `${(n / 1024 ** 3).toFixed(2)} GB` : `${(n / 1024 / 1024).toFixed(n < 10 * 1024 * 1024 ? 1 : 0)} MB`)
@@ -17,10 +15,10 @@ const mb = (n: number) => (n >= 1024 * 1024 * 1024 ? `${(n / 1024 ** 3).toFixed(
 /** Is homework generation healthy: volume, failures and why, speed, the review step, pictures, AI cost */
 export default async function AdminHealth() {
   const db = getDb()
-  const { access } = await pageStaff(db, 'health')
+  await pageStaff(db, 'health')
   const { t } = await getT()
   const h = await healthStats(db, 14)
-  const [tg, tgSettings, storage] = await Promise.all([telegramStats(db), getTelegramSettings(db), storageUsage(db)])
+  const [notes, storage] = await Promise.all([notificationStats(db), storageUsage(db)])
   const sum = h.days.reduce(
     (s, d) => ({
       total: s.total + d.total,
@@ -173,20 +171,18 @@ export default async function AdminHealth() {
         <p className="t-small text-ink-400">{t('admin.health.costNote')}</p>
       </Section>
 
-      <Section title={t('admin.tg.title')}>
+      <Section title={t('admin.notify.title')}>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-          <StatTile value={`${tg.linked}/${tg.students}`} label={t('admin.tg.reach')} hint={t('admin.tg.reachHint')} />
-          <StatTile value={tg.sent.new} label={t('admin.tg.sentNew')} hint={t('admin.tg.last7')} />
-          <StatTile value={tg.sent.due + tg.sent.nudge} label={t('admin.tg.sentReminders')} hint={t('admin.tg.last7')} />
-          <StatTile value={tg.sent.alert} label={t('admin.tg.sentAlerts')} hint={t('admin.tg.last7')} />
+          <StatTile value={`${notes.withApp}/${notes.students}`} label={t('admin.notify.reach')} hint={t('admin.notify.reachHint')} />
+          <StatTile value={notes.sent.new} label={t('admin.notify.sentNew')} hint={t('admin.notify.last7')} />
+          <StatTile value={notes.sent.due + notes.sent.nudge} label={t('admin.notify.sentReminders')} hint={t('admin.notify.last7')} />
+          <StatTile value={notes.sent.alert} label={t('admin.notify.sentAlerts')} hint={t('admin.notify.last7')} />
         </div>
         <ul className={`${panel} t-small flex flex-col gap-1`}>
-          <li>{t(tg.bot ? 'admin.tg.botOn' : 'admin.tg.botOff')}</li>
-          <li>{t(tg.cron ? 'admin.tg.cronOn' : 'admin.tg.cronOff')}</li>
-          <li>{t(`admin.tg.alerts.${tg.alerts}` as MessageKey)}</li>
+          <li>{t(notes.push ? 'admin.notify.pushOn' : 'admin.notify.pushOff')}</li>
+          <li>{t(notes.cron ? 'admin.notify.cronOn' : 'admin.notify.cronOff')}</li>
+          <li>{t(notes.owners ? 'admin.notify.alertsApp' : 'admin.notify.alertsLog')}</li>
         </ul>
-        {access.owner && <TelegramLinks initial={tgSettings.links} />}
-        {access.owner && <TelegramSetup />}
       </Section>
     </div>
   )

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { eq, getDb, teacherProfiles } from '@ikhimi/db'
-import { formatDate, maskPhone } from '@ikhimi/i18n'
+import { formatDate } from '@ikhimi/i18n'
 import { Avatar, TaskIcon, TemperatureProvider, type TaskIconName } from '@ikhimi/ui/components'
 import type { MessageKey } from '@ikhimi/i18n'
 import { AppHeader } from '@/components/AppHeader'
@@ -13,16 +13,12 @@ import { getT } from '@/i18n/server'
 import { teacherGroups, teacherImpact } from '@/server/profiles'
 import { studentDashboard } from '@/server/student-dashboard'
 import { APPLE_PHONE_PREFIX } from '@/server/apple'
-import { GOOGLE_PHONE_PREFIX } from '@/server/google'
 import { getSession } from '@/server/request'
 
-/** "010-****-5678" (design spec §12) */
-function phoneForDisplay(e164: string) {
-  // Signed up with Apple or Google: no phone number
-  if (e164.startsWith(APPLE_PHONE_PREFIX)) return 'Apple ID'
-  if (e164.startsWith(GOOGLE_PHONE_PREFIX)) return 'Google'
-  const m = /^\+82(1\d)\d{3,4}(\d{4})$/.exec(e164)
-  return m ? `0${m[1]}-****-${m[2]}` : maskPhone(e164)
+/** How the account signs in, for its owner: "Google · name@gmail.com" or "Apple ID" */
+function signedInWith(user: { phone: string; email: string | null }) {
+  if (user.phone.startsWith(APPLE_PHONE_PREFIX)) return user.email ? `Apple ID · ${user.email}` : 'Apple ID'
+  return user.email ? `Google · ${user.email}` : 'Google'
 }
 
 /** One route, two profile shapes (design spec §12): the active role decides which one renders. */
@@ -31,9 +27,7 @@ export default async function ProfilePage() {
   if (!session) redirect('/signin?next=/profile')
   const { user } = session
   const { t } = await getT()
-  // Made with Apple or Google: no number yet, so it can link Telegram, and has no password to set
-  const noNumber = user.phone.startsWith(APPLE_PHONE_PREFIX) || user.phone.startsWith(GOOGLE_PHONE_PREFIX)
-  const account = { phoneMasked: phoneForDisplay(user.phone), telegramLinked: !!user.telegramChatId, noNumber, passwordSetAt: user.passwordSetAt, role: user.role, roles: user.roles }
+  const account = { signedInWith: signedInWith(user), role: user.role, roles: user.roles }
   const db = getDb()
   const isTeacher = user.role === 'teacher'
   const [tp] = isTeacher ? await db.select().from(teacherProfiles).where(eq(teacherProfiles.userId, user.id)).limit(1) : []

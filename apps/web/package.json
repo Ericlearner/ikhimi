@@ -11,11 +11,7 @@
     "test": "vitest run",
     "predev": "node scripts/sync-brand.mjs",
     "prebuild": "node scripts/sync-brand.mjs",
-    "telegram:poll": "tsx --env-file=.env.local scripts/telegram.ts poll",
-    "telegram:webhook": "tsx --env-file=.env.local scripts/telegram.ts webhook",
-    "vercel-build": "pnpm --filter @ikhimi/db migrate && pnpm --filter @ikhimi/pedagogy seed --optional && node scripts/sync-brand.mjs && next build",
-    "telegram:support-webhook": "tsx --env-file=.env.local scripts/telegram.ts support-webhook",
-    "telegram:support-poll": "tsx --env-file=.env.local scripts/telegram.ts support-poll"
+    "vercel-build": "pnpm --filter @ikhimi/db migrate && pnpm --filter @ikhimi/pedagogy seed --optional && node scripts/sync-brand.mjs && next build"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
@@ -39,7 +35,6 @@
     "@ikhimi/ui": "workspace:^",
     "@vercel/analytics": "^2.0.1",
     "fflate": "^0.8.2",
-    "libphonenumber-js": "^1.13.14",
     "lucide-react": "^1.48.0",
     "mammoth": "^1.13.0",
     "next": "^16.4.0",

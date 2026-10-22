@@ -15,8 +15,7 @@
     "db:seed": "pnpm --filter @ikhimi/db seed",
     "pedagogy:seed": "pnpm --filter @ikhimi/pedagogy seed",
     "worker": "pnpm --filter @ikhimi/workers start",
-    "storage:init": "pnpm --filter @ikhimi/db storage:init",
-    "telegram:poll": "pnpm --filter @ikhimi/web telegram:poll"
+    "storage:init": "pnpm --filter @ikhimi/db storage:init"
   },
   "devDependencies": {
     "typescript": "^5.6.3",

@@ -33,13 +33,14 @@ Nothing about Android shows either (guideline 2.3.10).
    - `APPLE_TEAM_ID`: Membership details → Team ID (10 characters)
    - `APPLE_KEY_ID`: the key's ID (10 characters)
    - `APPLE_PRIVATE_KEY`: the whole `.p8` text, `-----BEGIN PRIVATE KEY-----` to `-----END PRIVATE KEY-----`
-   - `REVIEW_LOGIN_PHONE` and `REVIEW_LOGIN_CODE`, if not set already (the reviewers' login, see step 4)
 3. **Database:** nothing to do: the tables come with the normal migrations.
 4. **Check:** `https://ikhimi.kr/.well-known/apple-app-site-association` shows JSON with
    `<TEAM_ID>.kr.ikhimi.app`. (404 = `APPLE_TEAM_ID` isn't set.)
 
-Without the key there's no Apple button in the app, and Apple will reject it: the app offers Telegram login, so it
-must offer Sign in with Apple too.
+Without the key there's no way to sign in inside the app: Google refuses to sign in inside an app's web view, so
+Sign in with Apple is the app's only way in (the website and the Android apps use Google). An Apple ID whose email
+the person shares opens the same account as their Google account with that email; with "Hide My Email" it's a
+separate account.
 
 ## 2. Once: Xcode
 
@@ -78,14 +79,14 @@ For every update: raise the build (`CURRENT_PROJECT_VERSION`: 2, 3, …) and, fo
 - **Privacy policy URL:** `https://ikhimi.kr/privacy`. **Account deletion:** in the app, Profile →
   Settings → Delete account (`/delete-account` explains it).
 - **App Privacy** (must match `Ikhimi/PrivacyInfo.xcprivacy`): Data collected, linked to the user, not used for
-  tracking, purpose App Functionality: Name, Phone Number, User ID, Photos (textbook pages teachers upload), Other
+  tracking, purpose App Functionality: Name, Email Address, User ID, Photos (textbook pages teachers upload), Other
   User Content (homework answers). Nothing else.
-- **App Review Information → Sign-in required:** user name = `REVIEW_LOGIN_PHONE`, password = `REVIEW_LOGIN_CODE`.
-  Notes (paste):
+- **App Review Information → Sign-in required:** no demo account; reviewers sign in with their own Apple ID (a new
+  account picks teacher or student on the first screen). Notes (paste):
 
   > 익히미 (Ikhimi) helps foreign-language teachers in Korea turn a textbook page into homework with automatic checking; students do it
-  > on their phones. Sign in: tap "Sign in with Apple", or use the phone form with the demo number and code above (no
-  > SMS is sent to it; it opens a teacher + student account). Nothing is sold in the iOS app: plans can't be bought
+  > on their phones. Sign in: tap "Sign in with Apple" with any Apple ID; the first screen asks whether you teach or
+  > learn (choose "teacher" to see homework creation). Nothing is sold in the iOS app: plans can't be bought
   > or seen in it. Native features: Sign in with Apple, push notifications for homework and grades, the camera for
   > textbook pages, the microphone for pronunciation practice, the share sheet, universal links.
 

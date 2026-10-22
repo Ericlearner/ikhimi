@@ -2,7 +2,7 @@ import { PDFDocument } from 'pdf-lib'
 import { createHash } from 'node:crypto'
 import { and, eq, inArray, isNull, lt, materialBlobs, materials, sql, type Db, CONFIG } from '@ikhimi/db'
 import type { Material } from '@ikhimi/ai'
-import { ownerPhones } from './admin/staff'
+import { isOwner } from './admin/staff'
 import { authorize, type Actor } from './policy'
 import { CHARS_PER_PAGE, DOC_MIME, DOCX_MIME, readWord, WordError } from './word'
 
@@ -10,8 +10,8 @@ import { CHARS_PER_PAGE, DOC_MIME, DOCX_MIME, readWord, WordError } from './word
  * Teachers upload materials. The owner also uploads the Lab's resources, whichever side of their account is open
  * (the Lab is theirs, not a teacher's): their own uploads only.
  */
-export function authorizeUpload(user: Actor & { phone: string; blockedAt?: Date | null }, teacherId?: string) {
-  if (!user.blockedAt && ownerPhones().includes(user.phone) && (teacherId === undefined || teacherId === user.id)) return
+export function authorizeUpload(user: Actor & { email: string | null; blockedAt?: Date | null }, teacherId?: string) {
+  if (!user.blockedAt && isOwner(user) && (teacherId === undefined || teacherId === user.id)) return
   if (teacherId === undefined) authorize(user, 'material:create', null)
   else authorize(user, 'material:update', { teacherId })
 }

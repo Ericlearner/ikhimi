@@ -1,7 +1,7 @@
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { ICON } from '@ikhimi/ui/components'
-import { SITE, supportBotUrl } from '@/content/site'
+import { SITE, supportMailto } from '@/content/site'
 import { getT } from '@/i18n/server'
 import { apkVersion, appShell } from '@/server/store-app'
 
@@ -26,8 +26,8 @@ export async function SiteFooter() {
               {l.label}
             </Link>
           ))}
-          <a href={supportBotUrl()} target="_blank" rel="noopener noreferrer" className="t-small text-ink-500 hover:text-ink-800">
-            Telegram: @{SITE.supportBot}
+          <a href={supportMailto()} className="t-small text-ink-500 hover:text-ink-800">
+            {SITE.supportEmail}
           </a>
         </nav>
         <p className="t-small text-ink-400">© {new Date().getFullYear()} 익히미</p>
@@ -41,7 +41,7 @@ export async function SiteFooter() {
   )
 }
 
-/** The apps' Profile: what the website's footer holds (about, help, terms, privacy, the support bot), as a list */
+/** The apps' Profile: what the website's footer holds (about, help, terms, privacy, the support email), as a list */
 export async function AppInfoLinks() {
   if (!(await appShell())) return null
   const { t } = await getT()
@@ -60,8 +60,8 @@ export async function AppInfoLinks() {
           <ChevronRight size={18} strokeWidth={ICON.strokeWidth} className="shrink-0 text-ink-400" aria-hidden />
         </Link>
       ))}
-      <a href={supportBotUrl()} target="_blank" rel="noopener noreferrer" className={row}>
-        <span className="t-body">Telegram: @{SITE.supportBot}</span>
+      <a href={supportMailto()} className={row}>
+        <span className="t-body">{SITE.supportEmail}</span>
         <ChevronRight size={18} strokeWidth={ICON.strokeWidth} className="shrink-0 text-ink-400" aria-hidden />
       </a>
       <p className="t-small px-4 py-3 text-ink-400">© {new Date().getFullYear()} 익히미</p>

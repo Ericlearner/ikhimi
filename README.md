@@ -10,7 +10,7 @@ it: changes are made here, for Korea.
 
 ## Put it online (once)
 
-You need accounts at GitHub, Neon (database), Vercel (hosting), Google AI Studio (AI) and Telegram.
+You need accounts at GitHub, Neon (database), Vercel (hosting) and Google Cloud (AI and sign-in).
 
 1. **GitHub.** Create a new, empty, **private** repository (e.g. `ikhimi`), then in this folder:
    ```bash
@@ -21,8 +21,12 @@ You need accounts at GitHub, Neon (database), Vercel (hosting), Google AI Studio
    connection string (it starts with `postgres://`). pgvector is turned on by the first migration.
 3. **AI key.** aistudio.google.com/apikey → Create API key, in a new Google Cloud project for 익히미 (so its bill and
    limits are its own).
-4. **Telegram bot.** In Telegram, [@BotFather](https://t.me/BotFather) → `/newbot` → a name (익히미) and a username
-   ending in `bot` (e.g. `ikhimi_bot`). Keep the token. Never reuse another app's bot: one bot can only have one site.
+4. **Sign in with Google.** console.cloud.google.com, in the same project → APIs & Services → **OAuth consent
+   screen**: External, app name 익히미, your support email; then **Publish app** (in "Testing" only listed test users
+   can sign in). Then **Credentials** → Create credentials → **OAuth client ID** → Web application → Authorized
+   redirect URIs: `https://<your Vercel address>/api/auth/google/callback` (add your own domain's later). Keep the
+   client ID and secret. Google is the only way in on the website and in the Android apps; the iOS app uses Sign in
+   with Apple (apps/ios/README.md).
 5. **Vercel.** vercel.com → Add New → Project → import the GitHub repository →
    - Root Directory: `apps/web` (Framework: Next.js; the rest stays default)
    - Environment Variables (Production), at least:
@@ -30,25 +34,27 @@ You need accounts at GitHub, Neon (database), Vercel (hosting), Google AI Studio
      | Name | Value |
      |---|---|
      | `DATABASE_URL` | the Neon connection string |
-     | `AUTH_PEPPER` | a long random string (`openssl rand -hex 32`) |
+     | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | from step 4 |
      | `GEMINI_API_KEY` | the AI Studio key |
-     | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` | from BotFather (username without `@`) |
-     | `TELEGRAM_WEBHOOK_SECRET` | another random string (`openssl rand -hex 24`) |
      | `PUBLIC_ORIGIN` | the site's address, e.g. `https://ikhimi.vercel.app` (later your own domain) |
-     | `OWNER_PHONES` | your phone in international form, e.g. `+821012345678` (you become the admin) |
-     | `CRON_SECRET` | another random string (the daily reminders job) |
+     | `OWNER_EMAILS` | the Google email you sign in with (you become the admin) |
+     | `CRON_SECRET` | a long random string (`openssl rand -hex 24`), for the daily reminders job |
 
      Leave `S3_*` unset on Vercel (files are kept in the database). Everything else is optional and explained in
-     [.env.example](.env.example): bank transfers (`PAY_*`), Google/Apple sign-in, SMS codes, model choices.
+     [.env.example](.env.example): Apple sign-in and notifications for the iOS app, model choices.
    - Deploy. Every deploy runs the database migrations and the methodology seed by itself (`vercel-build`).
-6. **Connect the bot.** Open the site, sign in with Telegram using the `OWNER_PHONES` number (the bot asks you to
-   share your number), set a password, then **관리자 → 상태 → 텔레그램 메시지 → 봇 설정**. That registers the webhook,
-   the menu and the bot's Korean description.
+6. **Sign in.** Open the site, press **Google로 계속하기** with the `OWNER_EMAILS` account, and answer the welcome
+   questions. **관리자** (Admin) appears in your menu.
 7. **Your domain (later).** Vercel → Settings → Domains → add it, point the DNS as Vercel says, then change
-   `PUBLIC_ORIGIN` and redeploy, and press **봇 설정** again.
+   `PUBLIC_ORIGIN`, add `https://<domain>/api/auth/google/callback` to the Google OAuth client, and redeploy.
 8. **Before real users:** fill the `[대괄호]` business details in `apps/web/src/content/site.ts` (상호, 대표자,
-   사업자등록번호, 통신판매업 신고번호, 주소, 개인정보 보호책임자) and have a Korean lawyer review the privacy policy and
-   terms in `apps/web/src/content/legal.ts`.
+   사업자등록번호, 통신판매업 신고번호, 주소, 개인정보 보호책임자, and the support email that the help pages and the
+   help chat's "팀에 메일 쓰기" use) and have a Korean lawyer review the privacy policy and terms in
+   `apps/web/src/content/legal.ts`.
+
+Notifications (new homework, due tomorrow, graded, the teacher's reminder) reach people who use the iOS app with
+notifications on; everyone else sees their homework in 내 숙제. Nothing is sold until a payment gateway (e.g. Toss
+Payments) is connected in `apps/web/src/server/payments/providers.ts`.
 
 Prices (Pro 9,900원, VIP 14,900원 a month by default) are changed in 관리자 → 매출 → 요금제 가격. The apps:
 [apps/android/README.md](apps/android/README.md) and [apps/ios/README.md](apps/ios/README.md) (new signing key, new
@@ -61,7 +67,7 @@ Requirements: Node 22+, pnpm (`corepack enable`), Docker.
 ```bash
 pnpm install
 docker compose up -d                 # Postgres 16 + pgvector, SeaweedFS (S3) on :9000
-cp .env.example apps/web/.env.local  # and set AUTH_PEPPER (`openssl rand -hex 32`)
+cp .env.example apps/web/.env.local  # and set GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (below)
 cp apps/web/.env.local workers/.env
 
 set -a; . workers/.env; set +a
@@ -75,9 +81,9 @@ pnpm worker                          # second terminal: background jobs
 
 AI: set `GEMINI_API_KEY`; for demos without a key, `LLM_FAKE=1` answers with canned Korean homework.
 
-**Log in with Telegram:** put a test bot's `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` and `TELEGRAM_WEBHOOK_SECRET`
-in `apps/web/.env.local`, and run `pnpm telegram:poll` in a third terminal. The phone + code form also works; with
-`SMS_PROVIDER=console`, codes are printed in the `pnpm dev` terminal.
+**Signing in locally:** add `http://localhost:3000/api/auth/google/callback` to the Google OAuth client's redirect
+URIs and put its ID and secret in `apps/web/.env.local`. Put your Google email in `OWNER_EMAILS` for the admin panel,
+and in `SEED_TEACHER_EMAIL` before `pnpm db:seed` to sign in as the demo teacher.
 
 ## Layout
 
@@ -86,7 +92,7 @@ apps/web          Next.js 16 (App Router): marketing, teacher app, student app, 
 apps/android      Android apps (Trusted Web Activity): Google Play, and an APK for the website
 apps/ios          iOS app (Swift): the site plus Sign in with Apple, push, camera, microphone
 packages/db       Drizzle schema + migrations, pg-boss queues, S3 storage, [DECIDE] config constants
-packages/i18n     The Korean message catalog, phone/date/money formatting (010-1234-5678, 2026.10.22, 9,900원)
+packages/i18n     The Korean message catalog, date/money/phone formatting (2026.10.22, 9,900원, 010-1234-5678)
 packages/ai       Prompts and checks for homework, grading, the tutor; the AI boundary (sanitizeForLLM / assertNoPII)
 packages/pedagogy Methodology knowledge base
 packages/ui       Brand tokens (light + dark), components, sounds

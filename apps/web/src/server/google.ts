@@ -1,8 +1,9 @@
 /**
- * Sign in with Google, on the website (OpenID Connect, authorization code + PKCE). GOOGLE_CLIENT_ID and
- * GOOGLE_CLIENT_SECRET come from Google Cloud Console → APIs & Services → Credentials → OAuth client ID (Web
- * application), with `<site>/api/auth/google/callback` as an authorized redirect URI. Unset = no Google button.
- * Not offered inside the apps: Google refuses sign-in in an app's web view.
+ * Sign in with Google: the one way in on the website and in the Android apps (OpenID Connect, authorization code +
+ * PKCE). GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET come from Google Cloud Console → APIs & Services → Credentials →
+ * OAuth client ID (Web application), with `<site>/api/auth/google/callback` as an authorized redirect URI.
+ * The Android apps are Chrome (Trusted Web Activity), so Google works there; the iOS app is a web view, where Google
+ * refuses to sign in, so it has Sign in with Apple instead.
  */
 import { createHash, randomBytes } from 'node:crypto'
 

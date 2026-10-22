@@ -16,7 +16,16 @@ const good = { iss: APPLE_ISSUER, aud: 'kr.ikhimi.app', sub: '001234.abc.0001', 
 
 describe('Sign in with Apple', () => {
   it("accepts Apple's token for this app and returns Apple's user id", async () => {
-    expect(await verifyAppleIdentityToken(idToken(good), 'kr.ikhimi.app', { now, fetcher })).toEqual({ sub: good.sub })
+    expect(await verifyAppleIdentityToken(idToken(good), 'kr.ikhimi.app', { now, fetcher })).toEqual({ sub: good.sub, email: null })
+  })
+
+  it('returns the email only when Apple verified it and it is not a hidden relay address', async () => {
+    const opts = { now, fetcher }
+    const mine = { ...good, email: 'jieun@example.com', email_verified: 'true' }
+    expect(await verifyAppleIdentityToken(idToken(mine), 'kr.ikhimi.app', opts)).toEqual({ sub: good.sub, email: 'jieun@example.com' })
+    expect(await verifyAppleIdentityToken(idToken({ ...mine, email_verified: false }), 'kr.ikhimi.app', opts)).toEqual({ sub: good.sub, email: null })
+    const relay = { ...mine, email: 'x1y2@privaterelay.appleid.com', is_private_email: 'true' }
+    expect(await verifyAppleIdentityToken(idToken(relay), 'kr.ikhimi.app', opts)).toEqual({ sub: good.sub, email: null })
   })
 
   it('refuses a token for another app, an expired one, a forged one, or garbage', async () => {

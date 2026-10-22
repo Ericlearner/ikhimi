@@ -4,7 +4,7 @@ import { attempts, eq, planPackages, subscriptions, users, type Db } from '@ikhi
 import { convertItem, splitByPlan, type GenerateResult, type LlmItem } from '@ikhimi/ai'
 import { checkAnswer, createDraft, loadExercises, publishAssignment, startAttempt, submitAttempt } from './assignments'
 import { createPackagePayment, createPlanPayment, markCancelled, markPaid } from './payments/core'
-import { findOrCreateUserByPhone } from './auth/users'
+import { findOrCreateUser } from './auth/users'
 import { claimSeat, giveVipGift, grantPlan, studentPlan, studentPlanInfo } from './plans'
 import { DEFAULT_PRICING, getPricing, savePricing } from './pricing'
 import { teacherEarnings } from './earnings'
@@ -136,10 +136,10 @@ describe('student plans', () => {
   it("a new student gets a week of VIP, then Free; only while the offer runs; teachers get none", async () => {
     // The offer runs to the end of a day next year, so the test holds whenever it runs
     const day = `${new Date().getUTCFullYear() + 1}-12-31`
-    const { user: owner } = await findOrCreateUserByPhone(db, { phone: '+998901112200', role: 'teacher', uiLocale: 'ko' })
+    const { user: owner } = await findOrCreateUser(db, { phone: 'google:owner', role: 'teacher', uiLocale: 'ko' })
     await savePricing(db, { ...DEFAULT_PRICING, vipGiftUntil: day, vipGiftDays: 7 }, owner.id)
     const signedUp = Date.now()
-    const { user: s } = await findOrCreateUserByPhone(db, { phone: '+998901112233', role: 'student', uiLocale: 'ko' })
+    const { user: s } = await findOrCreateUser(db, { phone: 'google:s', role: 'student', uiLocale: 'ko' })
     const info = await studentPlanInfo(db, s.id)
     expect(info.plan).toBe('vip')
     expect(Math.abs(info.until!.getTime() - (signedUp + 7 * 86_400_000))).toBeLessThan(60_000)
@@ -149,30 +149,28 @@ describe('student plans', () => {
     // After the offer's last day: no gift
     expect(await giveVipGift(db, s.id, new Date(new Date(`${day}T23:59:59+05:00`).getTime() + 1000))).toBeNull()
     await savePricing(db, { ...DEFAULT_PRICING, vipGiftUntil: null }, owner.id)
-    const { user: late } = await findOrCreateUserByPhone(db, { phone: '+998901112255', role: 'student', uiLocale: 'ko' })
+    const { user: late } = await findOrCreateUser(db, { phone: 'google:late', role: 'student', uiLocale: 'ko' })
     expect(await studentPlan(db, late.id)).toBe('free')
   })
 
-  it("a teacher earns only from their own class's students, and sees it on their earnings page", async () => {
+  it("a teacher earns only from their own class's students; a test payment never counts as earnings", async () => {
     const { t, a, student } = await setup()
-    const [other] = await db.insert(users).values({ role: 'teacher', phone: '+998900000009', fullName: 'Boshqa' }).returning()
+    const [other] = await db.insert(users).values({ role: 'teacher', phone: 'google:other', fullName: 'Boshqa' }).returning()
     const mine = await student(1)
     await startAttempt(db, a, mine.id) // in the teacher's class
     const stranger = await student(2) // in nobody's class
-    const p1 = await createPlanPayment(db, { studentId: mine.id, plan: 'pro', months: 1, provider: 'card' })
-    const p2 = await createPlanPayment(db, { studentId: stranger.id, plan: 'vip', months: 1, provider: 'card' })
-    expect(p1.payment.commissionTeacherId).toBe(t.id)
+    // Only the test provider exists until a gateway is connected: the commission is recorded on the payment the same way
+    const p1 = await createPlanPayment(db, { studentId: mine.id, plan: 'pro', months: 1, provider: 'test' })
+    const p2 = await createPlanPayment(db, { studentId: stranger.id, plan: 'vip', months: 1, provider: 'test' })
+    expect(p1.payment).toMatchObject({ commissionTeacherId: t.id, commissionKrw: 990, amountKrw: 9_900 })
     expect(p2.payment.commissionTeacherId).toBeNull()
-    expect((await teacherEarnings(db, t.id)).totalKrw).toBe(0) // not paid yet
     await markPaid(db, p1.payment.id)
     await markPaid(db, p2.payment.id)
-    const e = await teacherEarnings(db, t.id)
-    expect(e).toMatchObject({ totalKrw: 990, monthKrw: 990, students: 1 })
-    expect(e.recent).toEqual([expect.objectContaining({ student: 'S1', plan: 'pro', months: 1, amountKrw: 9_900, commissionKrw: 990 })])
+    expect(await teacherEarnings(db, t.id)).toMatchObject({ totalKrw: 0, monthKrw: 0, students: 0 })
     expect((await teacherEarnings(db, other!.id)).recent).toHaveLength(0)
-    // A refund takes it back
+    // A refund still takes the plan back
     await markCancelled(db, p1.payment.id)
-    expect((await teacherEarnings(db, t.id)).totalKrw).toBe(0)
+    expect(await studentPlan(db, mine.id)).toBe('free')
   })
 
   it('work from before plans keeps every item', async () => {

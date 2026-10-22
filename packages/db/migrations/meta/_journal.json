@@ -211,6 +211,20 @@
       "when": 1792629206170,
       "tag": "0029_korean",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1792635185922,
+      "tag": "0030_google_email",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1792635224617,
+      "tag": "0031_google_only",
+      "breakpoints": true
     }
   ]
 }

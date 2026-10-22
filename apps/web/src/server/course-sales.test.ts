@@ -154,13 +154,13 @@ describe('which plan a course homework is done on', () => {
     await expect(createCoursePayment(db, { studentId: free.id, courseId: c.id, provider: 'test' })).rejects.toThrow('not_for_sale')
   })
 
-  it("a course sale shows on the teacher's earnings with the course's name", async () => {
+  it("a course sale records the teacher's share; a test payment never counts as earnings", async () => {
     const { t, c } = await setup(200_000)
     const s = await user('student', 'Aziz')
-    const { payment } = await createCoursePayment(db, { studentId: s.id, courseId: c.id, provider: 'card' })
+    // Only the test provider exists until a gateway is connected
+    const { payment } = await createCoursePayment(db, { studentId: s.id, courseId: c.id, provider: 'test' })
+    expect(payment).toMatchObject({ commissionTeacherId: t.id, commissionKrw: 120_000, amountKrw: 200_000 })
     await markPaid(db, payment.id)
-    const e = await teacherEarnings(db, t.id)
-    expect(e.totalKrw).toBe(120_000)
-    expect(e.recent[0]).toMatchObject({ course: 'IELTS 6.5', commissionKrw: 120_000, amountKrw: 200_000 })
+    expect((await teacherEarnings(db, t.id)).totalKrw).toBe(0)
   })
 })

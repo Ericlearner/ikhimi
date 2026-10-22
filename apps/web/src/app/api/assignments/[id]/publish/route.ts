@@ -35,7 +35,7 @@ export const POST = route(async (req, ctx: { params: Promise<{ id: string }> }) 
       newGroup: input.newGroup,
       dueDays: dueDaysOf(input),
     })
-    // Students of the group hear about it in Telegram (once each), after the teacher has their answer
+    // Students of the group hear about it in the iOS app (once each), after the teacher has their answer
     after(() => notifyNewHomework(getDb(), pub).catch((e) => console.warn('[notify] new homework', e)))
     return NextResponse.json({ shareSlug: pub.shareSlug })
   } catch (e) {

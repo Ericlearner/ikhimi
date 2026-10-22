@@ -10,7 +10,7 @@ import { getT } from '@/i18n/server'
 import { usdToKrw } from '@/server/ai-usage'
 import { pageStaff } from '@/server/admin/guard'
 import { maskForStaff } from '@/server/admin/permissions'
-import { can, ownerPhones } from '@/server/admin/staff'
+import { can, isOwner } from '@/server/admin/staff'
 import { userDetail } from '@/server/admin/stats'
 import { studentPlanInfo } from '@/server/plans'
 
@@ -37,7 +37,7 @@ export default async function AdminUser({ params }: { params: Promise<{ id: stri
         <div className="flex min-w-0 flex-col gap-1">
           <h2 className="t-h1 truncate">{u.fullName ?? '—'}</h2>
           <span className="t-small t-num text-ink-500">
-            {maskForStaff(u.phone)} · {t('admin.users.joined', { date: formatDate(u.createdAt) })}
+            {maskForStaff(u.email, u.phone)} · {t('admin.users.joined', { date: formatDate(u.createdAt) })}
             {u.lastActiveAt ? ` · ${t('admin.users.lastActive', { date: formatDate(u.lastActiveAt) })}` : ''}
           </span>
           <span className="flex flex-wrap gap-1">
@@ -72,9 +72,9 @@ export default async function AdminUser({ params }: { params: Promise<{ id: stri
         isStudent={isStudent}
         dailyCap={profile?.dailyCap ?? null}
         defaultCap={CONFIG.generationDailyCapPerTeacher}
-        canManage={can(access, 'users.manage') && u.id !== session.user.id && !ownerPhones().includes(u.phone)}
-        canRevealPhone={can(access, 'users.phone')}
-        canPlan={can(access, 'users.manage') && (u.id !== session.user.id || ownerPhones().includes(session.user.phone))}
+        canManage={can(access, 'users.manage') && u.id !== session.user.id && !isOwner(u)}
+        canRevealEmail={can(access, 'users.email') && !!u.email}
+        canPlan={can(access, 'users.manage') && (u.id !== session.user.id || isOwner(session.user))}
         plan={plan.plan}
         planUntil={plan.until ? formatDate(plan.until) : null}
         subscriptions={d.subscriptions.map((s) => ({ id: s.id, plan: s.plan, status: s.status, priceKrw: s.priceKrw, createdAt: s.createdAt.toISOString() }))}

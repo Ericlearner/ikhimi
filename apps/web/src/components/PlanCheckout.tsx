@@ -1,5 +1,5 @@
 'use client'
-import { Check, Clock, CreditCard, Crown, Minus, Plus, Send, ShieldCheck, Sprout, Zap } from 'lucide-react'
+import { Check, Clock, CreditCard, Crown, Minus, Plus, ShieldCheck, Sprout, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { listPrice, orderDiscount, planTotal, pricingMonths, type Pricing } from '@ikhimi/ai'
@@ -41,8 +41,6 @@ export function PlanCheckout({
   initialPlan = 'pro',
   current = null,
   signInHref,
-  telegramBot = null,
-  supportUrl,
 }: {
   mode: 'student' | 'package'
   pricing: Pricing
@@ -54,12 +52,6 @@ export function PlanCheckout({
   current?: Plan | null
   /** Signed out: the order asks to sign in instead */
   signInHref?: string
-  /**
-   * No payment provider yet, card transfers in Telegram instead (server/payments/card.ts): the bot's username. A
-   * student opens its shop on the plan and months chosen here; a teacher's package is arranged with support.
-   */
-  telegramBot?: string | null
-  supportUrl?: string
 }) {
   const { t } = useI18n()
   const [plan, setPlan] = useState<Paid>(initialPlan)
@@ -228,20 +220,6 @@ export function PlanCheckout({
                 <Clock size={22} strokeWidth={ICON.strokeWidth} className="mt-0.5 shrink-0 text-orange-700" aria-hidden />
                 {t('plans.priceSoon')}
               </p>
-            ) : providers.length === 0 && telegramBot ? (
-              <div className="flex flex-col gap-3">
-                <a
-                  href={teacher ? (supportUrl ?? `https://t.me/${telegramBot}`) : `https://t.me/${telegramBot}?start=plan_${plan}_${months}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-telegram btn-xl"
-                >
-                  <span className="btn-label">
-                    <Send size={20} strokeWidth={ICON.strokeWidth} aria-hidden /> {t(teacher ? 'plans.packageTelegram' : 'plans.payTelegram')}
-                  </span>
-                </a>
-                <p className="t-small text-ink-500">{t(teacher ? 'plans.packageTelegramHint' : 'plans.payTelegramHint')}</p>
-              </div>
             ) : providers.length === 0 ? (
               <p className="t-body text-ink-500">{t('course.noProviders')}</p>
             ) : (
@@ -269,7 +247,7 @@ export function PlanCheckout({
                 </div>
               </>
             )}
-            {/* About the provider's own payment page: not true of a card transfer */}
+            {/* About the provider's own payment page */}
             {providers.length > 0 && (
               <p className="t-small flex items-start gap-2 text-ink-500">
                 <ShieldCheck size={18} strokeWidth={ICON.strokeWidth} className="mt-0.5 shrink-0 text-success-600" aria-hidden />
