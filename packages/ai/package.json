@@ -1,0 +1,24 @@
+{
+  "name": "@ikhimi/ai",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./exams": "./src/exams.ts",
+    "./audio-names": "./src/audio-names.ts",
+    "./plan-shape": "./src/plan-shape.ts",
+    "./shadow-shape": "./src/shadow-shape.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ikhimi/i18n": "workspace:^",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "opencc-js": "^1.4.2"
+  }
+}

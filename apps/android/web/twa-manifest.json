@@ -1,0 +1,43 @@
+{
+  "packageId": "kr.ikhimi.app.web",
+  "host": "ikhimi.kr",
+  "name": "익히미",
+  "launcherName": "익히미",
+  "display": "standalone",
+  "themeColor": "#2C3E50",
+  "themeColorDark": "#2C3E50",
+  "navigationColor": "#1F2D3A",
+  "navigationColorDark": "#1F2D3A",
+  "navigationDividerColor": "#1F2D3A",
+  "navigationDividerColorDark": "#1F2D3A",
+  "backgroundColor": "#1F2D3A",
+  "enableNotifications": false,
+  "startUrl": "/open/apk",
+  "iconUrl": "https://ikhimi.kr/icons/icon-512.png",
+  "maskableIconUrl": "https://ikhimi.kr/icons/maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "~/Documents/ikhimi-android-keys/ikhimi-upload.jks",
+    "alias": "ikhimi"
+  },
+  "appVersionName": "1.0.1",
+  "appVersionCode": 2,
+  "shortcuts": [],
+  "generatorApp": "unknown",
+  "webManifestUrl": "https://ikhimi.kr/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "minSdkVersion": 24,
+  "orientation": "portrait",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "displayOverride": [],
+  "appVersion": "1.0.1"
+}

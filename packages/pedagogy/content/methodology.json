@@ -1,0 +1,111 @@
+[
+  {
+    "subject": "language-learning",
+    "title": "PPP structure: presentation, controlled practice, production",
+    "tags": [
+      "ppp",
+      "structure",
+      "sequencing"
+    ],
+    "locale": "en",
+    "body": "Sequence items from receptive to productive, never the reverse. Presentation (first 10-15%): show the target language in context with 1-2 model sentences or a worked example the student can't get wrong — this orients, it doesn't test. Controlled practice (50-60%): one clearly correct answer per item, format constrains the response (gap-fill, matching, mcq); isolate ONE target point per item so a mistake is diagnosable. Production (25-35%): looser prompts, multiple valid answers expected, grade with a rubric not exact-match. Skip production only if the teacher explicitly asked for drilling/repetition. Failure to guard against: items that could be shuffled into any order with no loss of coherence — that means there is no real sequencing, only a pile of similar-difficulty questions."
+  },
+  {
+    "subject": "cross-subject",
+    "title": "Spacing, retrieval practice and interleaving",
+    "tags": [
+      "memory",
+      "spacing",
+      "retrieval_practice",
+      "interleaving"
+    ],
+    "locale": "en",
+    "body": "When the group has prior assignments, pull 15-25% of items from material taught 2-4 lessons ago, weighted toward what students previously got wrong — never generate a fully isolated worksheet with zero connection to what came before. Mix 1-2 items from an earlier, easily-confused topic into an otherwise single-topic assignment (e.g. one Past Simple item inside a Present Perfect set) so the student must actively discriminate rather than autopilot. Never let a worked example be followed immediately by another worked example — make the student attempt recall before showing any answer. Failure to guard against: a group with 2+ prior assignments receiving a brand-new assignment with zero recycled items."
+  },
+  {
+    "subject": "cross-subject",
+    "title": "Order questions by cognitive demand (Bloom's)",
+    "tags": [
+      "cognitive_level",
+      "question_design",
+      "blooms"
+    ],
+    "locale": "en",
+    "body": "Order items low to high: remember/recall first, then understand, then apply (most controlled-practice items), then — for at least one item — analyze/evaluate/create. Don't jump straight from a recall item to an analysis/evaluation item with nothing bridging them. For young learners, keep the cognitive level real but the language simple (concrete comparisons, not abstract ones); don't confuse 'simple vocabulary' with 'low cognitive demand' — a 9-year-old can compare and justify, just in short sentences. Failure to guard against: an assignment that is entirely low-level recall/recognition items (e.g. 10 mcqs all asking 'what does X mean') with nothing requiring the student to apply, compare or produce."
+  },
+  {
+    "subject": "language-learning",
+    "title": "CEFR level and learner age are independent axes",
+    "tags": [
+      "cefr",
+      "age_band",
+      "level_calibration",
+      "topic_selection"
+    ],
+    "locale": "en",
+    "body": "Level sets the vocabulary/grammar ceiling (A1 ~500-800 words, present simple only; A2 ~1000-1500 words + past simple; B1 ~2000-2500 words + present perfect/conditionals; B2+ ~3500+ words, passive/reported speech). Age sets topic and tone, NOT the difficulty ceiling: young learners (7-10) get animals/family/school/toys, short sentences, picture/matching-heavy tasks, max ~60s attention per item; teens (11-17) get hobbies/social media/school life, and can handle abstract analyze/evaluate tasks if the topic is age-relevant; adults get work/travel/news topics regardless of how low their level is. Every non-target word/structure in an item should sit below the level ceiling. Failure to guard against: treating 'low level' as 'childish content' for an adult beginner, or treating 'high level' as needing an adult-only topic for an advanced young learner — these are the two most damaging, most common mistakes."
+  },
+  {
+    "subject": "cross-subject",
+    "title": "Fair multiple-choice distractors",
+    "tags": [
+      "mcq",
+      "distractors",
+      "item_writing",
+      "fairness"
+    ],
+    "locale": "en",
+    "body": "Each wrong option must represent a real, predictable learner error (e.g. overregularization 'goed', confusing past participle 'gone', confusing gerund 'going') — never a random or absurd word that can be eliminated without knowing the material. Exactly one option may be defensibly correct under any reasonable reading of the question; check this specifically, not just against the intended answer in isolation. Keep all options similar in length and grammatical form — a noticeably longer or more complete-looking option is a free giveaway. No two distractors may mean the same thing. Use 3 options total for young learners/A1, 4 for everyone else; avoid 'all/none of the above'. Vary which position holds the correct answer across items in the same assignment."
+  },
+  {
+    "subject": "language-learning",
+    "title": "Listening exercise structure",
+    "tags": [
+      "listening",
+      "audio",
+      "comprehension"
+    ],
+    "locale": "en",
+    "body": "Always give a pre-listening anchor before the audio: a topic hint, 2-3 key words, or a one-line prediction question — listening cold with zero context is unrealistically hard even for a native speaker. Ask a gist question before a detail question (main topic before specific facts). Order comprehension questions to match the order information appears in the audio; don't require holding late-audio information to answer an early question. Tag each item with the audio time range it depends on so the player can offer a targeted replay. Dictation-style gap-fill should require at most one word per blank at A1/A2. When a printed exercise is paired with its audio track (matched by track/exercise number), digitize the printed questions faithfully — do not invent new questions from the transcript; the printed exercise is ground truth. Failure to guard against: a question answerable from the question text alone, without needing to have heard the audio at all."
+  },
+  {
+    "subject": "language-learning",
+    "title": "Sentence transformation drills (affirmative, negative, question)",
+    "tags": [
+      "transformation",
+      "drill",
+      "tense",
+      "negative",
+      "question",
+      "controlled_practice"
+    ],
+    "locale": "en",
+    "body": "When the teacher asks for N sentences in a tense and their negative/question forms, deliver exactly N original base sentences — the count is the teacher's, not the time budget's. Vary the subject across I/you/he/she/it/we/they and the context (home, school, weekend, food, sport), so each sentence tests the form again instead of copying the last one; the he/she/it -s and do/does/did choices are where learners fail, so include them often. Give each base sentence one whole-sentence blank per transformation asked and list every correct variant: contracted and full forms (doesn't / does not), both word orders where both are correct. The same pattern serves tense change, active↔passive, direct↔reported speech and singular↔plural. Failure to guard against: fifteen sentences with the same subject and verb pattern, so after the second one the student is copying, not transforming."
+  },
+  {
+    "subject": "language-learning",
+    "title": "Students writing their own sentences (AI-graded production)",
+    "tags": [
+      "production",
+      "writing",
+      "open_writing",
+      "rubric",
+      "free_practice"
+    ],
+    "locale": "en",
+    "body": "When the teacher wants students to produce their own sentences ('write 10 sentences about your family in Present Simple', 'use 8 of today's words'), use open_writing, never a closed item pretending to be production. Set the number of boxes to the number of sentences asked (max 20 per item). The checklist is what the student sees: 1-4 concrete, checkable demands in the instruction language (use the target tense, include one negative, use he/she at least twice). The rubric is what the AI grader applies to each sentence: the target structure, what counts as an error (missing -s, wrong auxiliary, wrong irregular form), what does not (spelling slips in unrelated words, simple content). Give 2-3 model sentences at the students' level. Failure to guard against: a vague rubric ('good English sentences') that lets any sentence pass, so the grade says nothing about the lesson's point."
+  },
+  {
+    "subject": "cross-subject",
+    "title": "Reading comprehension: a text and questions about it",
+    "tags": [
+      "reading",
+      "comprehension",
+      "passage",
+      "inference",
+      "true_false_not_given"
+    ],
+    "locale": "en",
+    "body": "Reading practice is a passage plus several questions on it, not isolated vocabulary items. Write an original 80-250 word text at the students' level on the lesson's topic (or use the one in the materials), then 3-6 questions that move from locating a detail to understanding the main idea, the order of events, a word's meaning in context, and one inference. Every answer must come from the text; a student who didn't read it must not be able to answer from general knowledge. True/false/not given only here, and 'not given' must mean the text truly does not say. Keep the passage's names generic. Failure to guard against: questions answerable without the passage, which measure what the student already knew rather than their reading."
+  }
+]

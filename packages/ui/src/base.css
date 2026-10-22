@@ -1,0 +1,257 @@
+/*
+ * 익히미 base layer: typography scale, the letterpress button, named animations, temperatures,
+ * paper grain, reduced-motion replacement. Imported once by the app after tokens.css.
+ */
+
+/* ─── fonts ─── */
+:root {
+  /* Hangul isn't in the shipped fonts: each stack falls back to the device's Korean sans (Apple SD Gothic Neo on Apple,
+     Noto Sans KR on Android, Malgun Gothic on Windows), never to a Korean serif */
+  --font-ui: 'Inter Variable', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'PT Serif', 'Inter Variable', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', Georgia, sans-serif;
+  /* The tutor's voice: Nunito italics, rounded and friendly (only the italic face is loaded) */
+  --font-tutor: 'Nunito Variable', 'Inter Variable', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', ui-sans-serif, system-ui, sans-serif;
+  --text-scale: 1;
+}
+html {
+  font-size: calc(100% * var(--text-scale));
+  -webkit-text-size-adjust: 100%;
+}
+:root[data-text-size='large'] {
+  --text-scale: 1.125;
+}
+:root[data-text-size='larger'] {
+  --text-scale: 1.25;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: 0.9375rem; /* body 15/23 */
+  line-height: 1.533;
+  color: var(--text);
+  background-color: var(--surface);
+  -webkit-font-smoothing: antialiased;
+}
+/* Paper grain on the app background only — never on cards or text containers */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--grain);
+  opacity: var(--grain-opacity);
+}
+
+/* ─── type scale (spec §3); +15% at ≥1024px ─── */
+.t-display-1 { font-family: var(--font-display); font-weight: 700; font-size: 2rem; line-height: 1.1875; letter-spacing: -0.02em; color: var(--text-strong); }
+.t-display-2 { font-family: var(--font-display); font-weight: 700; font-size: 1.625rem; line-height: 1.23; letter-spacing: -0.01em; color: var(--text-strong); }
+.t-h1 { font-family: var(--font-display); font-weight: 700; font-size: 1.375rem; line-height: 1.27; color: var(--text-strong); }
+.t-h2 { font-size: 1.125rem; line-height: 1.333; font-weight: 600; }
+.t-h3 { font-size: 1rem; line-height: 1.375; font-weight: 600; }
+.t-body-lg { font-size: 1.0625rem; line-height: 1.588; }
+.t-body { font-size: 0.9375rem; line-height: 1.533; }
+.t-small { font-size: 0.8125rem; line-height: 1.46; }
+.t-caption { font-size: 0.75rem; line-height: 1.333; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+/* Never letterspace Cyrillic lowercase (spec §3) */
+:lang(ru) .t-caption, :lang(uz-Cyrl) .t-caption { letter-spacing: 0.02em; }
+.t-num { font-variant-numeric: tabular-nums; }
+/* What the tutor says: a different voice from the exercise, so students know who is talking */
+.t-tutor { font-family: var(--font-tutor); font-style: italic; font-weight: 550; font-size: 1.0625rem; line-height: 1.6; }
+
+/* Tutor mascot placeholder: bobs while thinking, hops once when it speaks. Replaced by the animated mascot later. */
+@keyframes tutor-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes tutor-hop { 0% { transform: translateY(0) rotate(0); } 35% { transform: translateY(-5px) rotate(-6deg); } 70% { transform: translateY(0) rotate(3deg); } 100% { transform: rotate(0); } }
+.tutor-thinking { animation: tutor-bob 900ms ease-in-out infinite; }
+.tutor-talking { animation: tutor-hop 520ms var(--ease-spring); }
+@keyframes tutor-dot { 0%, 80%, 100% { opacity: 0.25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-2px); } }
+.tutor-dots > span { display: inline-block; animation: tutor-dot 1.1s ease-in-out infinite; }
+.tutor-dots > span:nth-child(2) { animation-delay: 0.15s; }
+.tutor-dots > span:nth-child(3) { animation-delay: 0.3s; }
+.measure { max-width: 62ch; }
+@media (min-width: 1024px) {
+  .t-display-1 { font-size: 2.3rem; }
+  .t-display-2 { font-size: 1.875rem; }
+  .t-h1 { font-size: 1.5625rem; }
+}
+
+/* Navy lockup on paper, orange lockup on lamplight */
+.logo-light { display: var(--logo-light); }
+.logo-dark { display: var(--logo-dark); }
+
+/* ─── gold hairline: section rules, section dividers, published badge only ─── */
+.rule-gold { height: 1px; background: var(--gold-500); border: 0; }
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* ─── the letterpress button (spec §5) ─── */
+.btn {
+  --ledge: 4px;
+  --ledge-color: transparent;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  border-radius: var(--r-lg);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 var(--ledge) 0 0 var(--ledge-color);
+  transform: translateY(0);
+  transition: transform var(--d-instant) var(--ease-standard), box-shadow var(--d-instant) var(--ease-standard),
+    background-color var(--d-fast) var(--ease-standard);
+  margin-bottom: var(--ledge);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(var(--ledge));
+  box-shadow: 0 0 0 0 var(--ledge-color);
+}
+.btn:disabled { cursor: not-allowed; opacity: 0.55; }
+.btn-primary { background: var(--orange-500); color: var(--on-orange); --ledge-color: var(--orange-600); }
+.btn-primary:hover:not(:disabled) { background: var(--orange-400); }
+.btn-secondary { background: var(--paper-50); color: var(--ink-700); border: 1px solid var(--paper-300); --ledge-color: var(--ledge-secondary); }
+.btn-secondary:hover:not(:disabled) { background: var(--paper-200); }
+.btn-ghost { background: transparent; color: var(--ink-700); --ledge: 0px; margin-bottom: 0; }
+.btn-ghost:hover:not(:disabled) { background: var(--paper-200); }
+.btn-ghost:active:not(:disabled) { transform: scale(0.97); }
+.btn-danger { background: transparent; color: var(--error-600); border: 1.5px solid var(--error-600); --ledge: 0px; margin-bottom: 0; }
+.btn-danger:hover:not(:disabled) { background: var(--error-100); }
+.btn-telegram { background: var(--telegram); color: var(--on-telegram); --ledge-color: var(--telegram-hover); }
+.btn-telegram:hover:not(:disabled) { background: var(--telegram-hover); }
+.btn-apple { background: var(--apple); color: var(--on-apple); --ledge-color: var(--ink-500); }
+.btn-sm { min-height: 36px; padding: 0 0.875rem; font-size: 0.875rem; border-radius: var(--r-md); }
+.btn-md { min-height: 44px; }
+.btn-lg { min-height: 52px; padding: 0 1.5rem; font-size: 1.0625rem; }
+.btn-xl { min-height: 56px; width: 100%; font-size: 1.0625rem; }
+.btn-pill { border-radius: var(--r-pill); }
+/* Loading keeps the exact width: label stays in flow but invisible, spinner overlays */
+/* Icon + text sit in one row for <button> and link-buttons alike */
+.btn-label { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.btn[data-loading] > .btn-label { visibility: hidden; }
+.btn > .btn-spinner { position: absolute; inset: 0; display: grid; place-items: center; }
+
+.spinner {
+  width: 1.1em;
+  height: 1.1em;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 700ms linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── named animations (spec §6) ─── */
+.press { transition: transform var(--d-instant) var(--ease-standard); }
+.press:active { transform: scale(0.97); }
+
+@keyframes card-enter { from { opacity: 0; transform: translateY(8px); } }
+.card-enter {
+  animation: card-enter var(--d-base) var(--ease-decel) both;
+  animation-delay: calc(var(--i, 0) * var(--stagger));
+}
+
+@keyframes correct-pop { 0% { transform: scale(1); } 45% { transform: scale(1.04); } 100% { transform: scale(1); } }
+.correct-pop { animation: correct-pop 280ms var(--ease-spring); }
+
+@keyframes incorrect-nudge {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+  90% { transform: translateX(-2px); }
+}
+.incorrect-nudge { animation: incorrect-nudge 240ms var(--ease-standard); }
+
+.progress-track { height: 6px; border-radius: var(--r-pill); background: var(--paper-200); overflow: hidden; }
+.progress-fill {
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: var(--orange-500);
+  transform-origin: left center;
+  transition: transform var(--d-slow) var(--ease-decel);
+}
+
+@keyframes thinking-pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.thinking-pulse { animation: thinking-pulse 1400ms ease-in-out infinite; }
+
+.skeleton { position: relative; overflow: hidden; background: var(--paper-200); border-radius: var(--r-md); }
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
+  animation: skeleton 1200ms ease-in-out infinite;
+}
+:root[data-theme='dark'] .skeleton::after { background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.06), transparent); }
+@keyframes skeleton { to { transform: translateX(100%); } }
+
+@keyframes fade-in { from { opacity: 0; } }
+.fade-in { animation: fade-in var(--d-base) var(--ease-standard) both; }
+@keyframes slide-down { from { opacity: 0; transform: translateY(-6px); } }
+.slide-down { animation: slide-down var(--d-base) var(--ease-decel) both; }
+
+/* complete: checkmark draw + paper-plane rise + gold hairline sweep (600ms) */
+.complete-check path { stroke-dasharray: 48; stroke-dashoffset: 48; animation: draw 400ms var(--ease-decel) 100ms forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.complete-plane { animation: plane-rise var(--d-celebr) var(--ease-decel) both; }
+@keyframes plane-rise { from { opacity: 0; transform: translate(-12px, 16px) rotate(-8deg); } }
+.complete-sweep { transform-origin: left; animation: sweep var(--d-celebr) var(--ease-standard) both; }
+@keyframes sweep { from { transform: scaleX(0); } }
+
+/* ─── temperatures (spec §1) ─── */
+[data-temp='calm'] { --stagger: 20ms; }
+[data-temp='calm'] .correct-pop,
+[data-temp='calm'] .complete-plane,
+[data-temp='calm'] .complete-sweep { animation: none; }
+
+/* ─── reduced motion: every animation REPLACED by an opacity crossfade at `fast` (spec §6) ─── */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='full']) *,
+  :root:not([data-motion='full']) *::before,
+  :root:not([data-motion='full']) *::after {
+    animation-name: fade-in !important;
+    animation-duration: var(--d-fast) !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-property: opacity, background-color, color, border-color !important;
+    transition-duration: var(--d-fast) !important;
+  }
+  :root:not([data-motion='full']) .btn:active:not(:disabled) { transform: none; }
+}
+:root[data-motion='reduce'] *,
+:root[data-motion='reduce'] *::before,
+:root[data-motion='reduce'] *::after {
+  animation-name: fade-in !important;
+  animation-duration: var(--d-fast) !important;
+  animation-iteration-count: 1 !important;
+  animation-delay: 0ms !important;
+  transition-property: opacity, background-color, color, border-color !important;
+  transition-duration: var(--d-fast) !important;
+}
+:root[data-motion='reduce'] .btn:active:not(:disabled) { transform: none; }
+/* A drawn checkmark must still end up visible when its draw animation is replaced */
+@media (prefers-reduced-motion: reduce) { .complete-check path { stroke-dashoffset: 0; } }
+:root[data-motion='reduce'] .complete-check path { stroke-dashoffset: 0; }
+
+/* Result confetti: falls and spins once; reduced motion replaces it with the global fade */
+@keyframes confetti-fall {
+  0% { transform: translate(0, -10px) rotate(0); opacity: 1; }
+  100% { transform: translate(var(--dx, 0), 220px) rotate(var(--rot, 360deg)); opacity: 0; }
+}
+.confetti { animation: confetti-fall 1400ms var(--ease-decel) both; }
+
+/* The homework player is distraction-free: no site footer */
+body:has([data-focus-mode]) .site-footer { display: none; }

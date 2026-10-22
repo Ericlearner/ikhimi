@@ -1,0 +1,116 @@
+@import 'tailwindcss';
+@import '@ikhimi/ui/tokens.css';
+@import '@ikhimi/ui/base.css';
+
+/* The shared component library lives outside this app; let Tailwind see its classes */
+@source '../../../../packages/ui/src';
+
+@theme inline {
+  --color-paper-50: var(--paper-50);
+  --color-paper-100: var(--paper-100);
+  --color-paper-200: var(--paper-200);
+  --color-paper-300: var(--paper-300);
+  --color-paper-400: var(--paper-400);
+  --color-ink-900: var(--ink-900);
+  --color-ink-800: var(--ink-800);
+  --color-ink-700: var(--ink-700);
+  --color-ink-500: var(--ink-500);
+  --color-ink-400: var(--ink-400);
+  --color-orange-700: var(--orange-700);
+  --color-orange-600: var(--orange-600);
+  --color-orange-500: var(--orange-500);
+  --color-orange-400: var(--orange-400);
+  --color-orange-100: var(--orange-100);
+  --color-on-orange: var(--on-orange);
+  --color-gold-500: var(--gold-500);
+  --color-success-600: var(--success-600);
+  --color-score-strong: var(--score-strong);
+  --color-score-mid: var(--score-mid);
+  --color-score-low: var(--score-low);
+  --color-success-100: var(--success-100);
+  --color-warn-600: var(--warn-600);
+  --color-warn-100: var(--warn-100);
+  --color-error-600: var(--error-600);
+  --color-error-100: var(--error-100);
+  --color-telegram: var(--telegram);
+
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+  --radius-2xl: var(--r-2xl);
+  --radius-pill: var(--r-pill);
+
+  --shadow-e1: var(--e-1);
+  --shadow-e2: var(--e-2);
+  --shadow-e3: var(--e-3);
+  --shadow-e4: var(--e-4);
+
+  --font-sans: var(--font-ui);
+  --font-display: var(--font-display);
+}
+
+@layer base {
+  /* A page's <main> is centred with mx-auto inside the body's flex column, which would size it to its content: one
+     long unbroken line (a lesson title) then made the whole page wider than a phone. Full width, capped by max-w-*. */
+  main {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* ─── The apps' look (html[data-app], AppHeader → AppTabBar) ─── */
+html[data-app] {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+/* Buttons and links behave like an app's: no text selection or link preview on a long press */
+html[data-app] :where(a, button, summary, [role='button'], [role='menuitem'], label) {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 52px;
+  padding: env(safe-area-inset-top) 0.75rem 0 1rem;
+  background: var(--paper-100);
+  border-bottom: 1px solid var(--paper-300);
+}
+.app-tabbar {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 30;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--paper-50);
+  border-top: 1px solid var(--paper-300);
+}
+.app-tab {
+  display: flex;
+  min-height: 58px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--ink-400);
+  text-align: center;
+}
+.app-tab[aria-current='page'] {
+  color: var(--orange-700);
+}
+/* Room under the page for the tab bar */
+html[data-app] body:has(.app-tabbar) {
+  padding-bottom: calc(58px + env(safe-area-inset-bottom));
+}

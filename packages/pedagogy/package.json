@@ -1,0 +1,16 @@
+{
+  "name": "@ikhimi/pedagogy",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts", "./content/*": "./content/*" },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "seed": "tsx scripts/seed.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ikhimi/ai": "workspace:^",
+    "@ikhimi/db": "workspace:^"
+  }
+}

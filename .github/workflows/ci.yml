@@ -1,0 +1,39 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: ikhimi
+          POSTGRES_PASSWORD: ikhimi
+          POSTGRES_DB: ikhimi
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U ikhimi" --health-interval 2s --health-retries 20
+    env:
+      DATABASE_URL: postgres://ikhimi:ikhimi@localhost:5432/ikhimi
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Migrations are in sync with the schema
+        run: |
+          pnpm --filter @ikhimi/db exec drizzle-kit generate --name drift-check
+          test -z "$(git status --porcelain packages/db/migrations)" || { echo "Schema changed without a migration. Run pnpm db:generate."; git status packages/db/migrations; exit 1; }
+      - name: Migrations apply to real Postgres 16 + pgvector
+        run: pnpm db:migrate
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm --filter @ikhimi/web build

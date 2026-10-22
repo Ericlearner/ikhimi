@@ -1,0 +1,4 @@
+"CFBundleDisplayName" = "익히미";
+"NSCameraUsageDescription" = "To photograph a textbook page for homework.";
+"NSPhotoLibraryUsageDescription" = "To choose a photo of a textbook page for homework.";
+"NSMicrophoneUsageDescription" = "Used when you repeat after the speaker in pronunciation practice, and when you dictate instead of typing.";

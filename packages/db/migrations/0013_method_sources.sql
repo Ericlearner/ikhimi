@@ -1,0 +1,1 @@
+ALTER TABLE "methodology_patterns" ADD COLUMN "source_kind" text DEFAULT 'book' NOT NULL;

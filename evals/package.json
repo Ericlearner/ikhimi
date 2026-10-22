@@ -1,0 +1,15 @@
+{
+  "name": "@ikhimi/evals",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Generation quality suite (§8.7): real teacher requests through the real Create pipeline, with pass/fail checks.",
+  "scripts": {
+    "eval": "tsx src/run.ts",
+    "typecheck": "tsc -p .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ikhimi/ai": "workspace:^"
+  }
+}

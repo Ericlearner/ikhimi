@@ -1,0 +1,1 @@
+DROP TABLE "methodology_patterns" CASCADE;

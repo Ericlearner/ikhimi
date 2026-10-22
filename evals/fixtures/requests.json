@@ -1,0 +1,86 @@
+[
+  {
+    "id": "en-count",
+    "locale": "ko",
+    "text": "Present Simple로 문제 10개 만들어 주세요. A2 수준, 주제는 일상생활이에요.",
+    "minutes": 20,
+    "expect": { "contentLanguage": "en", "total": 10 }
+  },
+  {
+    "id": "en-open",
+    "locale": "ko",
+    "text": "과거진행형(Past Continuous), B1. 학생들이 지난주 이 시간에 무엇을 하고 있었는지 쓰게 해 주세요.",
+    "minutes": 20,
+    "expect": { "contentLanguage": "en" }
+  },
+  {
+    "id": "en-kinds",
+    "locale": "ko",
+    "text": "Present Perfect, B1 수준으로 객관식 6문제와 빈칸 채우기 4문제를 만들어 주세요.",
+    "minutes": 20,
+    "expect": { "contentLanguage": "en", "total": 10, "kinds": { "mcq_single": 6, "gap_fill": 4 } }
+  },
+  {
+    "id": "en-reading",
+    "locale": "ko",
+    "text": "A2 학생용으로 재활용에 관한 짧은 영어 지문을 쓰고, 그 지문에 대한 O/X 문제 5개를 내 주세요.",
+    "minutes": 15,
+    "expect": { "contentLanguage": "en", "kindsAtLeast": { "true_false": 5 } }
+  },
+  {
+    "id": "en-csat",
+    "locale": "ko",
+    "text": "고3 수능 영어 대비: 빈칸 추론 3문제, 글의 순서 2문제.",
+    "minutes": 25,
+    "expect": { "contentLanguage": "en", "total": 5 }
+  },
+  {
+    "id": "ja-count",
+    "locale": "ko",
+    "text": "일본어 초급, 가족 소개 표현으로 8문제 만들어 주세요.",
+    "minutes": 15,
+    "expect": { "contentLanguage": "ja", "total": 8 }
+  },
+  {
+    "id": "zh-count",
+    "locale": "ko",
+    "text": "중국어 HSK 2급 수준, 날짜와 요일 표현으로 6문제.",
+    "minutes": 15,
+    "expect": { "contentLanguage": "zh", "total": 6 }
+  },
+  {
+    "id": "ko-count",
+    "locale": "ko",
+    "text": "외국인 대상 한국어 수업, 초급: 인사와 자기소개 표현으로 8문제.",
+    "minutes": 15,
+    "expect": { "contentLanguage": "ko", "total": 8 }
+  },
+  {
+    "id": "en-vocab",
+    "locale": "ko",
+    "text": "영어 A2: 동물 주제로 어휘 문제를 만들어 주세요.",
+    "minutes": 15,
+    "expect": { "contentLanguage": "en" }
+  },
+  {
+    "id": "en-pronunciation",
+    "locale": "ko",
+    "text": "영어 발음: r과 l 소리 (right, light), B1 수준.",
+    "minutes": 15,
+    "expect": { "contentLanguage": "en", "skillsInclude": ["pronunciation"] }
+  },
+  {
+    "id": "en-no-vocab",
+    "locale": "ko",
+    "text": "B2 반용 영어 빈칸 채우기(gap fill) 6문제, 주제: 가정법. 어휘 문제는 필요 없어요.",
+    "minutes": 15,
+    "expect": { "contentLanguage": "en", "total": 6, "kinds": { "gap_fill": 6 }, "vocab": false }
+  },
+  {
+    "id": "en-essay",
+    "locale": "ko",
+    "text": "B2 영어 쓰기 연습: 재택근무가 사무실 근무보다 나은지에 대한 250단어 정도의 의견 에세이 한 편.",
+    "minutes": 30,
+    "expect": { "contentLanguage": "en", "kindsAtLeast": { "essay": 1 } }
+  }
+]

@@ -1,0 +1,7 @@
+# Build output and machine-local paths; the signing key lives outside the repo (~/Documents/ikhimi-android-keys)
+*/build/
+*/app/build/
+*/.gradle/
+*/local.properties
+*.jks
+*.keystore

@@ -1,0 +1,9 @@
+{
+  "identities": [
+    {
+      "name": "ikhimi",
+      "credentials": [{ "accessKey": "ikhimi", "secretKey": "ikhimi-dev-secret" }],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ]
+}

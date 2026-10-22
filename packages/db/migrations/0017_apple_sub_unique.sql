@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "apple_accounts_sub_uq" ON "apple_accounts" USING btree ("sub");

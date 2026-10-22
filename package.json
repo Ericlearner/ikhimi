@@ -1,0 +1,32 @@
+{
+  "name": "ikhimi",
+  "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @ikhimi/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "db:generate": "pnpm --filter @ikhimi/db generate",
+    "db:migrate": "pnpm --filter @ikhimi/db migrate",
+    "db:seed": "pnpm --filter @ikhimi/db seed",
+    "pedagogy:seed": "pnpm --filter @ikhimi/pedagogy seed",
+    "worker": "pnpm --filter @ikhimi/workers start",
+    "storage:init": "pnpm --filter @ikhimi/db storage:init",
+    "telegram:poll": "pnpm --filter @ikhimi/web telegram:poll"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8",
+    "tsx": "^4.19.2",
+    "@types/node": "^22.10.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "source-map-js": "^1.2.2"
+    }
+  }
+}
